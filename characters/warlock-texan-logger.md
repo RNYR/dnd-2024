@@ -29,17 +29,19 @@ of *The Hobbit* he has read a thousand times.
 8. **Warlock cantrips:** *Prestidigitation* (pipe tricks) and *Eldritch Blast* as **"Backdraft Spark"**:
    with the pipe still in his mouth he puffs back into the stem, a curl of smoke rises from the bowl, catches
    a spark, and the spark streaks to the enemy (1d10 force, 120 ft; more sparks as beams scale).
-9. **Starting level: 3** (campaign starts at level 3).
+9. **Eldritch Invocations (3):** Pact of the Blade (L1), **Armor of Shadows** (AC 15 in overalls),
+   **Devil's Sight** (sees in magical and nonmagical darkness to 120 ft). Plan for L5: Thirsting Blade + Eldritch Smite or Agonizing Blast.
+10. **Starting level: 3** (campaign starts at level 3).
 
 ## Level 3 snapshot (in progress)
-- HP 24 (8 + 2 x 5, +2 CON per level) · AC 15 with Armor of Shadows (planned) · Speed 30 · Prof +2
+- HP 24 (8 + 2 x 5, +2 CON per level) · AC 15 with Armor of Shadows · Speed 30 · Prof +2
 - Spell save DC 14 · Spell attack +6 · Pact slots: 2 x level 2 (recharge on Short Rest)
 - Stake: +6 to hit, 1d6 + 4 (Radiant / Psychic / Piercing)
 - Archfey: Steps of the Fey 4/Long Rest (free Misty Step + Refreshing or Taunting Step);
   always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
 - Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
 - Open choices: Magic Initiate level 1 spell, 4 prepared warlock spells,
-  2 more invocations (level 2), gear, name and backstory
+  gear, name and backstory
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
