@@ -1,0 +1,429 @@
+<title>Cletus Character Sheet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@600&family=Alegreya+Sans+SC:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+/* Layout: two "pages" like the 2024 sheet. Page 1 = header strip, abilities column + combat/features columns. Page 2 = spellcasting + character. */
+:root {
+  --paper: #eef0ea;
+  --panel: #f8f9f5;
+  --ink: #1d2420;
+  --muted: #5b675f;
+  --line: #c3cbc2;
+  --moss: #3b5a44;
+  --ember: #b9561c;
+  --chip: #e2e8df;
+  --display: "Grenze Gotisch", "UnifrakturMaguntia", Georgia, serif;
+  --label: "Alegreya Sans SC", "Alegreya Sans", system-ui, sans-serif;
+  --body: "Alegreya Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131915; --panel: #1b231e; --ink: #e4e9e2; --muted: #9aa79d;
+    --line: #34413a; --moss: #8fb59a; --ember: #f0904f; --chip: #24302a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #131915; --panel: #1b231e; --ink: #e4e9e2; --muted: #9aa79d;
+  --line: #34413a; --moss: #8fb59a; --ember: #f0904f; --chip: #24302a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.sheet { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+.page { display: grid; gap: 14px; }
+.page-label { font-family: var(--label); letter-spacing: .14em; text-transform: uppercase; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.page-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+h2 { font-family: var(--label); font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--moss); margin: 0 0 8px; }
+h3 { font-family: var(--label); font-weight: 700; font-size: 15px; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+.lbl { font-family: var(--label); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* Header */
+.head { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 2fr); gap: 14px; }
+.ident { display: grid; gap: 8px; }
+.name { font-family: var(--display); font-weight: 600; font-size: clamp(44px, 7vw, 68px); line-height: .95; color: var(--ink); }
+.name small { font-family: var(--body); font-size: 14px; color: var(--muted); display: block; margin-top: 6px; font-style: italic; }
+.idgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 14px; }
+.idgrid div { border-top: 1px solid var(--line); padding-top: 4px; }
+.idgrid b { display: block; font-weight: 500; }
+.vitals { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
+.stat { text-align: center; display: grid; align-content: center; gap: 2px; }
+.stat .big { font-size: 34px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat .sub { font-size: 12px; color: var(--muted); }
+.shield { clip-path: polygon(50% 0, 100% 12%, 100% 60%, 50% 100%, 0 60%, 0 12%); background: var(--moss); color: var(--paper); border: 0; padding: 14px 10px 22px; }
+.shield .lbl, .shield .sub { color: var(--paper); opacity: .85; }
+.pips { display: inline-flex; gap: 4px; vertical-align: middle; }
+.pip { width: 12px; height: 12px; border: 1.5px solid var(--moss); border-radius: 50%; display: inline-block; }
+.pip.sq { border-radius: 2px; }
+.pip.on { background: var(--ember); border-color: var(--ember); }
+
+/* Page 1 body */
+.p1 { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.col { display: grid; gap: 14px; min-width: 0; }
+.mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.ability { display: grid; gap: 6px; }
+.ab-top { display: flex; align-items: center; gap: 12px; }
+.score { width: 58px; height: 58px; border: 2px solid var(--moss); border-radius: 50%; display: grid; place-items: center; text-align: center; flex: none; }
+.score b { font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums; }
+.score span { font-size: 11px; color: var(--muted); }
+.ab-name { font-family: var(--label); font-weight: 700; font-size: 16px; letter-spacing: .08em; text-transform: uppercase; }
+.ab-note { font-size: 12px; color: var(--muted); }
+.rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rows li { display: grid; grid-template-columns: 14px 34px 1fr; align-items: center; gap: 6px; font-size: 14px; }
+.rows li .v { font-variant-numeric: tabular-nums; text-align: right; font-weight: 500; }
+.rows li.save { font-weight: 700; border-bottom: 1px dashed var(--line); padding-bottom: 3px; margin-bottom: 2px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.dot.p { background: var(--moss); border-color: var(--moss); }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { font-family: var(--label); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 700; padding: 4px 8px 6px 0; border-bottom: 1px solid var(--line); }
+td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.n { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; }
+.scroll { overflow-x: auto; }
+.tag { display: inline-block; font-size: 11px; font-family: var(--label); letter-spacing: .06em; padding: 0 6px; border-radius: 3px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.tag.c { background: var(--ember); color: var(--paper); }
+.feat { display: grid; gap: 3px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.feat:last-child { border-bottom: 0; padding-bottom: 0; }
+.feat:first-of-type { padding-top: 0; }
+.feat p { font-size: 14px; }
+.feat .flav { font-style: italic; color: var(--muted); font-size: 13px; }
+.uses { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 14px; }
+.kv dt { font-family: var(--label); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 1px; }
+.kv dd { margin: 0; }
+
+/* Page 2 */
+.p2top { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.slots { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.p2 { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.spell-lvl td:first-child { font-variant-numeric: tabular-nums; color: var(--muted); }
+tr.grp td { background: var(--chip); font-family: var(--label); font-weight: 700; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--moss); padding: 4px 8px; }
+.prose { display: grid; gap: 8px; font-size: 14px; max-width: 68ch; }
+.quote { border-left: 3px solid var(--ember); padding-left: 10px; font-style: italic; }
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 14px; }
+.coins { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; }
+.coins div { border: 1px solid var(--line); border-radius: 4px; padding: 4px 0; }
+.coins b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+.foot { font-size: 12px; color: var(--muted); text-align: center; }
+
+@media (max-width: 1000px) {
+  .p1 { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); }
+  .p1 > .col:last-child { grid-column: 1 / -1; }
+  .head { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .p1, .p2 { grid-template-columns: 1fr; }
+  .rows li { font-size: 15px; }
+}
+</style>
+
+<main class="sheet">
+
+<section class="page" aria-label="Page 1">
+  <div class="page-label">Page 1 · Adventurer</div>
+
+  <div class="head">
+    <div class="box ident">
+      <div class="name">Cletus<small>"Now that weren't neighborly."</small></div>
+      <div class="idgrid">
+        <div><span class="lbl">Class</span><b>Warlock</b></div>
+        <div><span class="lbl">Subclass</span><b>Archfey Patron</b></div>
+        <div><span class="lbl">Species</span><b>Human</b></div>
+        <div><span class="lbl">Background</span><b>Hermit</b></div>
+        <div><span class="lbl">Level</span><b class="num">3</b></div>
+        <div><span class="lbl">Campaign</span><b>Curse of Strahd</b></div>
+      </div>
+    </div>
+    <div class="vitals">
+      <div class="box stat shield"><span class="lbl">Armor Class</span><span class="big">15</span><span class="sub">Armor of Shadows</span></div>
+      <div class="box stat"><span class="lbl">Hit Points</span><span class="big">24</span><span class="sub">max · temp ___</span></div>
+      <div class="box stat"><span class="lbl">Hit Dice</span><span class="big">3d8</span><span class="sub">spent ___</span></div>
+      <div class="box stat"><span class="lbl">Proficiency</span><span class="big">+2</span><span class="sub">bonus</span></div>
+      <div class="box stat"><span class="lbl">Initiative</span><span class="big">+2</span><span class="sub">Dex</span></div>
+      <div class="box stat"><span class="lbl">Speed</span><span class="big">30</span><span class="sub">ft · Size Medium</span></div>
+      <div class="box stat"><span class="lbl">Passive Perception</span><span class="big">12</span><span class="sub">Wis + prof</span></div>
+      <div class="box stat"><span class="lbl">Death Saves</span>
+        <span class="sub">Success <span class="pips"><i class="pip"></i><i class="pip"></i><i class="pip"></i></span></span>
+        <span class="sub">Failure <span class="pips"><i class="pip"></i><i class="pip"></i><i class="pip"></i></span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p1">
+    <!-- Abilities: 2024 sheet groups saves and skills under each ability -->
+    <div class="col">
+      <div class="box ability">
+        <div class="ab-top"><div class="score"><div><b>-1</b><br><span>8</span></div></div><div><div class="ab-name">Strength</div><div class="ab-note">Wiry, all tendon</div></div></div>
+        <ul class="rows">
+          <li class="save"><i class="dot"></i><span class="v">-1</span><span>Saving Throw</span></li>
+          <li><i class="dot"></i><span class="v">-1</span><span>Athletics</span></li>
+        </ul>
+      </div>
+      <div class="box ability">
+        <div class="ab-top"><div class="score"><div><b>+2</b><br><span>14</span></div></div><div><div class="ab-name">Dexterity</div></div></div>
+        <ul class="rows">
+          <li class="save"><i class="dot"></i><span class="v">+2</span><span>Saving Throw</span></li>
+          <li><i class="dot"></i><span class="v">+2</span><span>Acrobatics</span></li>
+          <li><i class="dot"></i><span class="v">+2</span><span>Sleight of Hand</span></li>
+          <li><i class="dot"></i><span class="v">+2</span><span>Stealth</span></li>
+        </ul>
+      </div>
+      <div class="box ability">
+        <div class="ab-top"><div class="score"><div><b>+2</b><br><span>15</span></div></div><div><div class="ab-name">Constitution</div></div></div>
+        <ul class="rows">
+          <li class="save"><i class="dot"></i><span class="v">+2</span><span>Saving Throw</span></li>
+        </ul>
+      </div>
+      <div class="box ability">
+        <div class="ab-top"><div class="score"><div><b>-2</b><br><span>7</span></div></div><div><div class="ab-name">Intelligence</div><div class="ab-note">Has read one book. A thousand times.</div></div></div>
+        <ul class="rows">
+          <li class="save"><i class="dot"></i><span class="v">-2</span><span>Saving Throw</span></li>
+          <li><i class="dot"></i><span class="v">-2</span><span>Arcana</span></li>
+          <li><i class="dot"></i><span class="v">-2</span><span>History</span></li>
+          <li><i class="dot"></i><span class="v">-2</span><span>Investigation</span></li>
+          <li><i class="dot"></i><span class="v">-2</span><span>Nature</span></li>
+          <li><i class="dot p"></i><span class="v">+0</span><span>Religion</span></li>
+        </ul>
+      </div>
+      <div class="box ability">
+        <div class="ab-top"><div class="score"><div><b>+0</b><br><span>11</span></div></div><div><div class="ab-name">Wisdom</div></div></div>
+        <ul class="rows">
+          <li class="save"><i class="dot p"></i><span class="v">+2</span><span>Saving Throw</span></li>
+          <li><i class="dot"></i><span class="v">+0</span><span>Animal Handling</span></li>
+          <li><i class="dot"></i><span class="v">+0</span><span>Insight</span></li>
+          <li><i class="dot p"></i><span class="v">+2</span><span>Medicine</span></li>
+          <li><i class="dot p"></i><span class="v">+2</span><span>Perception</span></li>
+          <li><i class="dot"></i><span class="v">+0</span><span>Survival</span></li>
+        </ul>
+      </div>
+      <div class="box ability">
+        <div class="ab-top"><div class="score"><div><b>+4</b><br><span>19</span></div></div><div><div class="ab-name">Charisma</div><div class="ab-note">Spellcasting ability</div></div></div>
+        <ul class="rows">
+          <li class="save"><i class="dot p"></i><span class="v">+6</span><span>Saving Throw</span></li>
+          <li><i class="dot p"></i><span class="v">+6</span><span>Deception</span></li>
+          <li><i class="dot p"></i><span class="v">+6</span><span>Intimidation</span></li>
+          <li><i class="dot"></i><span class="v">+4</span><span>Performance</span></li>
+          <li><i class="dot"></i><span class="v">+4</span><span>Persuasion</span></li>
+        </ul>
+      </div>
+      <div class="box">
+        <h2>Heroic Inspiration</h2>
+        <p class="uses"><i class="pip sq on"></i> Gained at every Long Rest (Human, Resourceful). Spend to reroll any die.</p>
+      </div>
+    </div>
+
+    <!-- Combat + class features -->
+    <div class="col">
+      <div class="box">
+        <h2>Weapons &amp; Damage Cantrips</h2>
+        <div class="scroll">
+        <table>
+          <thead><tr><th>Name</th><th>Atk / DC</th><th>Damage &amp; Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><b>Heartwood Stake</b><br><span class="muted">pact weapon, Trident stats</span></td><td class="n">+6</td><td class="n">1d8+4<br>1d10+4 two-handed</td><td>Piercing, or Radiant / Psychic / Necrotic (choose per hit). Thrown 20/60. Versatile. Radiant stops vampire regeneration.</td></tr>
+            <tr><td><b>Backdraft Spark</b><br><span class="muted">Eldritch Blast</span></td><td class="n">+6</td><td class="n">1d10 Force</td><td>120 ft. Puffs back into the stem; a spark leaps from the bowl.</td></tr>
+            <tr><td><b>Vicious Mockery</b></td><td class="n">DC 14 Wis</td><td class="n">1d6 Psychic</td><td>60 ft. Target has Disadvantage on its next attack roll. "Well, bless your heart."</td></tr>
+            <tr><td><b>Holy Water</b> ×2</td><td class="n">DC 12 Dex</td><td class="n">2d8 Radiant</td><td>Thrown 20 ft, replaces one attack. Only harms Fiends and Undead.</td></tr>
+            <tr><td><b>Wooden stake</b> ×3</td><td class="n">+4</td><td class="n">1d4+2 Piercing</td><td>Dagger stats. Kept for pinning a vampire in its coffin.</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>Class Features · Warlock</h2>
+        <div class="feat">
+          <h3>Pact of the Blade <span class="tag">Invocation</span></h3>
+          <p>Bonus Action: conjure the pact weapon (any melee weapon) or bond a magic weapon you touch. You're proficient with it, it's a Spellcasting Focus, you use CHA for attack and damage, and it deals its normal type or Necrotic, Psychic or Radiant. It vanishes if more than 5 ft from you for 1 minute.</p>
+          <p class="flav">Every morning he whittles the oak heartwood into a long stake. Every morning it is whole again.</p>
+        </div>
+        <div class="feat">
+          <h3>Armor of Shadows <span class="tag">Invocation</span></h3>
+          <p>Cast <i>Mage Armor</i> on yourself at will, without a spell slot. AC 13 + Dex = 15.</p>
+          <p class="flav">"Ain't nothin' gets through good denim."</p>
+        </div>
+        <div class="feat">
+          <h3>Devil's Sight <span class="tag">Invocation</span></h3>
+          <p>See normally in Dim Light and Darkness, magical and nonmagical, within 120 ft.</p>
+        </div>
+        <div class="feat">
+          <h3>Pact Magic</h3>
+          <p>2 spell slots, both level 2. Regain all on a Short or Long Rest. Prepare 4 warlock spells.</p>
+        </div>
+        <div class="feat">
+          <h3>Magical Cunning</h3>
+          <p>1-minute rite: regain half your expended Pact slots (1 slot).</p>
+          <p class="uses"><i class="pip sq"></i> 1 / Long Rest</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subclass, species, feats, proficiencies -->
+    <div class="col">
+      <div class="box">
+        <h2>Archfey Patron · the Old Lady of the Thicket</h2>
+        <div class="feat">
+          <h3>Steps of the Fey</h3>
+          <p>Cast <i>Misty Step</i> without a spell slot. Each time, add one:</p>
+          <p><b>Refreshing Step:</b> you or a creature within 10 ft gains 1d10 temp HP.</p>
+          <p><b>Taunting Step:</b> creatures within 5 ft of the space you left make a DC 14 Wis save or have Disadvantage on attacks against anyone but you until your next turn.</p>
+          <p class="flav">A long puff, a cloud of pipe smoke, and a parting shot.</p>
+          <p class="uses"><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i> 4 / Long Rest (CHA mod)</p>
+        </div>
+        <div class="feat">
+          <h3>Archfey Spells</h3>
+          <p>Always prepared: <i>Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep</i>.</p>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>Species Traits · Human</h2>
+        <div class="feat"><h3>Resourceful</h3><p>Gain Heroic Inspiration whenever you finish a Long Rest.</p></div>
+        <div class="feat"><h3>Skillful</h3><p>Proficiency in Perception.</p></div>
+        <div class="feat"><h3>Versatile</h3><p>Origin feat: Magic Initiate (Bard).</p></div>
+      </div>
+
+      <div class="box">
+        <h2>Feats</h2>
+        <div class="feat">
+          <h3>Healer <span class="tag">Origin · Hermit</span></h3>
+          <p><b>Battle Medic:</b> Utilize action, expend a Healer's Kit use: a creature within 5 ft spends a Hit Die and regains the roll + 2 HP.</p>
+          <p><b>Healing Rerolls:</b> reroll 1s on healing dice from spells or this feat.</p>
+          <p class="flav">"Quit yer bellyachin' and hold still."</p>
+          <p class="uses">Healer's Kit uses: <span class="pips"><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i><i class="pip sq"></i></span></p>
+        </div>
+        <div class="feat">
+          <h3>Magic Initiate (Bard) <span class="tag">Origin · Human</span></h3>
+          <p>Cantrips <i>Vicious Mockery</i> and <i>Light</i>; <i>Healing Word</i> always prepared. Spellcasting ability: CHA.</p>
+          <p class="uses"><i class="pip sq"></i> Free <i>Healing Word</i>, 1 / Long Rest</p>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>Equipment Training &amp; Proficiencies</h2>
+        <dl class="kv">
+          <dt>Armor</dt><dd>Light armor</dd>
+          <dt>Weapons</dt><dd>Simple weapons, plus his pact weapon</dd>
+          <dt>Tools</dt><dd>Herbalism Kit</dd>
+          <dt>Languages</dt><dd>Common, Halfling, Elvish <span class="muted">(suggested; pick any two standard languages)</span></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" aria-label="Page 2">
+  <div class="page-label">Page 2 · Spellcasting &amp; Character</div>
+
+  <div class="p2top">
+    <div class="box stat"><span class="lbl">Spellcasting Ability</span><span class="big">CHA</span><span class="sub">modifier +4</span></div>
+    <div class="box stat"><span class="lbl">Spell Save DC</span><span class="big">14</span><span class="sub">8 + 4 + 2</span></div>
+    <div class="box stat"><span class="lbl">Spell Attack</span><span class="big">+6</span><span class="sub">4 + 2</span></div>
+    <div class="box stat"><span class="lbl">Pact Slots</span><span class="big">2 × L2</span><span class="sub"><span class="pips"><i class="pip"></i><i class="pip"></i></span> Short Rest</span></div>
+  </div>
+
+  <div class="p2">
+    <div class="box">
+      <h2>Cantrips &amp; Prepared Spells</h2>
+      <div class="scroll">
+      <table class="spell-lvl">
+        <thead><tr><th>Lvl</th><th>Name</th><th>Time</th><th>Range</th><th>C/R/M</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="6">Cantrips</td></tr>
+          <tr><td>0</td><td><b>Eldritch Blast</b></td><td>Action</td><td>120 ft</td><td></td><td>"Backdraft Spark." 1d10 Force.</td></tr>
+          <tr><td>0</td><td><b>Prestidigitation</b></td><td>Action</td><td>10 ft</td><td></td><td>Lights the pipe, rude smoke rings, cleans boots.</td></tr>
+          <tr><td>0</td><td><b>Vicious Mockery</b></td><td>Action</td><td>60 ft</td><td></td><td>Magic Initiate. 1d6 Psychic + Disadv. on next attack.</td></tr>
+          <tr><td>0</td><td><b>Light</b></td><td>Action</td><td>Touch</td><td><span class="tag">M</span></td><td>Magic Initiate. Pipe bowl glows: 20 ft bright, 20 ft dim, 1 hr.</td></tr>
+          <tr class="grp"><td colspan="6">Prepared spells</td></tr>
+          <tr><td>1</td><td><b>Hex</b></td><td>Bonus</td><td>90 ft</td><td><span class="tag c">C</span> <span class="tag">M</span></td><td>+1d6 Necrotic on each hit. Up to 4 hr at L2.</td></tr>
+          <tr><td>1</td><td><b>Armor of Agathys</b></td><td>Action</td><td>Self</td><td><span class="tag">M</span></td><td>At L2: 10 temp HP; melee attackers take 10 Cold.</td></tr>
+          <tr><td>1</td><td><b>Charm Person</b></td><td>Action</td><td>30 ft</td><td></td><td>Wis save. 2 humanoids at L2. Target knows afterwards.</td></tr>
+          <tr><td>2</td><td><b>Darkness</b></td><td>Action</td><td>60 ft</td><td><span class="tag c">C</span> <span class="tag">M</span></td><td>15-ft black pipe smoke. He sees through it (Devil's Sight).</td></tr>
+          <tr class="grp"><td colspan="6">Always prepared</td></tr>
+          <tr><td>1</td><td><b>Healing Word</b></td><td>Bonus</td><td>60 ft</td><td></td><td>Magic Initiate. 2d4+4 (4d4+4 at L2). "Git up, ya big baby."</td></tr>
+          <tr><td>1</td><td><b>Faerie Fire</b></td><td>Action</td><td>60 ft</td><td><span class="tag c">C</span></td><td>Archfey. 20-ft cube, Dex save. Advantage vs. targets.</td></tr>
+          <tr><td>1</td><td><b>Sleep</b></td><td>Action</td><td>60 ft</td><td><span class="tag c">C</span> <span class="tag">M</span></td><td>Archfey. Wis save. Useless on most undead.</td></tr>
+          <tr><td>2</td><td><b>Misty Step</b></td><td>Bonus</td><td>Self</td><td></td><td>Archfey. Teleport 30 ft. Free via Steps of the Fey.</td></tr>
+          <tr><td>2</td><td><b>Calm Emotions</b></td><td>Action</td><td>60 ft</td><td><span class="tag c">C</span></td><td>Archfey. Cha save. Ends charm/fear or calms hostility.</td></tr>
+          <tr><td>2</td><td><b>Phantasmal Force</b></td><td>Action</td><td>60 ft</td><td><span class="tag c">C</span> <span class="tag">M</span></td><td>Archfey. Int save. Illusion deals 2d8 Psychic per turn.</td></tr>
+          <tr><td>1</td><td><b>Mage Armor</b></td><td>Action</td><td>Self</td><td></td><td>Armor of Shadows, at will, no slot. 8 hr.</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="muted" style="margin-top:8px;font-size:13px">C = Concentration, M = material component (his pipe or stake serves as focus). Hex and Darkness can't run together.</p>
+    </div>
+
+    <div class="col">
+      <div class="box">
+        <h2>Appearance</h2>
+        <p class="prose">Ginger hair in a man-bun. A thick red beard down to his belt, tied in knots. Black denim work overalls, black leather Red Wing boots, and a work shirt with sleeves rolled below the elbow over thick, veiny forearms. A pipe carved from oak heartwood is always in his teeth, and a long sharpened stake serves as his walking stick.</p>
+      </div>
+      <div class="box">
+        <h2>Personality</h2>
+        <dl class="kv">
+          <dt>Traits</dt><dd>Gives advice to anyone, on anything, unasked. Quotes <i>The Hobbit</i> for every occasion. Calm in a crisis: he puffs the pipe and gets to work.</dd>
+          <dt>Ideal</dt><dd>Work is work. A job worth doing is worth doing right, whether it's splitting cordwood or staking a vampire.</dd>
+          <dt>Bond</dt><dd>He owes the Old Lady of the Thicket a debt, every last tree's worth.</dd>
+          <dt>Flaw</dt><dd>Can't keep his mouth shut around folks with more power than sense. In Barovia, that's most of them.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="p2">
+    <div class="box">
+      <h2>Backstory</h2>
+      <div class="prose">
+        <p>Born on a dirt-poor farm at the edge of the Big Thicket in East Texas. The only book in the house was his granddaddy's copy of <i>The Hobbit</i>, read aloud every night by the stove. When the farm went under, Cletus took up logging, and he had opinions about how everyone else held their saw.</p>
+        <p>He felled an oak older than Texas that the old-timers said to leave be. Out of the stump spoke the Old Lady of the Thicket, and instead of killing him she made a deal:</p>
+        <p class="quote">"For every tree you felled, you'll fell a thing that ought not be standing."</p>
+        <p>She gave him the oak's heartwood. He whittles it into a stake each morning and it is whole again by the next. From the same wood he carved a pipe, lit with a coal from the oak's roots, that has never gone out. She also gave him her voice: the knack for saying the one thing that cuts a body down to size.</p>
+        <p>One autumn a fog rolled into the Thicket that didn't smell like Texas. "There's a wood out yonder that's sick to the root. Go on, now." He walked in with his stake, his pipe and his book, and walked out in Barovia.</p>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="box">
+        <h2>Equipment</h2>
+        <ul class="plain">
+          <li>Heartwood stake (conjured pact weapon, walking stick)</li>
+          <li>3 small wooden stakes</li>
+          <li>Oak-heartwood pipe (Spellcasting Focus) and tamper</li>
+          <li>Tobacco tin, lid polished to a mirror</li>
+          <li><i>The Hobbit</i>, dog-eared, read a thousand times</li>
+          <li>Healer's Kit (10 uses), Herbalism Kit</li>
+          <li>Holy Water ×2</li>
+          <li>Backpack, bedroll, 10 days of rations, 50 ft rope, waterskin</li>
+          <li>Work overalls, shirt and Red Wing boots</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h2>Coins</h2>
+        <div class="coins">
+          <div><span class="lbl">CP</span><b>0</b></div>
+          <div><span class="lbl">SP</span><b>8</b></div>
+          <div><span class="lbl">EP</span><b>0</b></div>
+          <div><span class="lbl">GP</span><b>39</b></div>
+          <div><span class="lbl">PP</span><b>0</b></div>
+        </div>
+      </div>
+      <div class="box">
+        <h2>Magic Item Attunement</h2>
+        <p class="muted">___ / 3 slots. Later: Pact of the Blade can bond the Sunsword.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">Built with the 2024 Player's Handbook rules. Stake reflavor (Trident stats) needs DM approval; fallback is Spear (1d6 / 1d8).</p>
+</section>
+</main>
