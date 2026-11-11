@@ -21,6 +21,23 @@ of *The Hobbit* he has read a thousand times.
    (patches allies up while lecturing them). Medicine, Religion, Herbalism Kit. The starting Book is *The Hobbit*.
 3. **Ability scores ("Barovia-safe"):** STR 8 (-1), DEX 14 (+2), CON 15 (+2), INT 7 (-2), WIS 11 (+0), CHA 19 (+4).
    Wiry, leathery strength rather than bulk.
+4. **Species: Human.** Resourceful (Heroic Inspiration each Long Rest), Skillful (Perception), Versatile (Magic Initiate).
+5. **Magic Initiate (Bard):** cantrips *Vicious Mockery* and *Light* (glowing pipe bowl). Level 1 spell: TBD.
+6. **The stake:** Pact of the Blade weapon with **Shortsword** stats (1d6 + CHA; Radiant, Psychic or Piercing).
+   Also carry a real wooden stake for pinning vampires in their coffins (Curse of Strahd rule).
+7. **Skills:** Medicine, Religion (Hermit); Intimidation, Deception (Warlock); Perception (Human).
+8. **Warlock cantrips:** *Prestidigitation* (pipe tricks) + TBD.
+9. **Starting level: 3** (campaign starts at level 3).
+
+## Level 3 snapshot (in progress)
+- HP 24 (8 + 2 x 5, +2 CON per level) · AC 15 with Armor of Shadows (planned) · Speed 30 · Prof +2
+- Spell save DC 14 · Spell attack +6 · Pact slots: 2 x level 2 (recharge on Short Rest)
+- Stake: +6 to hit, 1d6 + 4 (Radiant / Psychic / Piercing)
+- Archfey: Steps of the Fey 4/Long Rest (free Misty Step + Refreshing or Taunting Step);
+  always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
+- Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
+- Open choices: 2nd warlock cantrip, Magic Initiate level 1 spell, 4 prepared warlock spells,
+  2 more invocations (level 2), gear, name and backstory
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
