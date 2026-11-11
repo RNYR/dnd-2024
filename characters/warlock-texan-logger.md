@@ -17,6 +17,10 @@ of *The Hobbit* he has read a thousand times.
    Level 6 Misty Escape + Dreadful Step (psychic insults), level 10 Beguiling Defenses (immune to Charm vs Strahd).
    Patron hook: the spirit of the Texas forest he logged dragged him through the Mists as penance.
    The corncob pipe is his spellcasting focus.
+2. **Background: Hermit**, a backwoods logger living alone in a cabin. +2 CHA, +1 CON. Healer feat
+   (patches allies up while lecturing them). Medicine, Religion, Herbalism Kit. The starting Book is *The Hobbit*.
+3. **Ability scores ("Barovia-safe"):** STR 8 (-1), DEX 14 (+2), CON 15 (+2), INT 7 (-2), WIS 11 (+0), CHA 19 (+4).
+   Wiry, leathery strength rather than bulk.
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
