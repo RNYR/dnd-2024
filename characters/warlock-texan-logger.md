@@ -23,7 +23,11 @@ of *The Hobbit* he has read a thousand times.
    Wiry, leathery strength rather than bulk.
 4. **Species: Human.** Resourceful (Heroic Inspiration each Long Rest), Skillful (Perception), Versatile (Magic Initiate).
 5. **Magic Initiate (Bard):** cantrips *Vicious Mockery* and *Light* (glowing pipe bowl). Level 1 spell: **Healing Word** ("Git up, ya big baby, it's just a scratch"), free 1/Long Rest or with Pact slots.
-6. **The stake:** Pact of the Blade weapon with **Shortsword** stats (1d6 + CHA; Radiant, Psychic or Piercing).
+6. **The stake:** Pact of the Blade weapon, a **long sharpened wooden stake** that doubles as his walking stick,
+   using **Trident** stats (reflavor; confirm with DM, fallback Spear): +6 to hit, **1d8 + 4** one-handed /
+   **1d10 + 4** two-handed, thrown 20/60 ft. Each hit deals Piercing **or** Radiant **or** Psychic **or** Necrotic
+   (chosen per hit, they don't stack). Radiant vs vampires stops regeneration. Hex adds +1d6 necrotic on top.
+   He conjures it each morning ("whittling"); it vanishes if it's more than 5 ft from him for 1 minute.
    Also carry a real wooden stake for pinning vampires in their coffins (Curse of Strahd rule).
 7. **Skills:** Medicine, Religion (Hermit); Intimidation, Deception (Warlock); Perception (Human).
 8. **Warlock cantrips:** *Prestidigitation* (pipe tricks) and *Eldritch Blast* as **"Backdraft Spark"**:
@@ -36,7 +40,7 @@ of *The Hobbit* he has read a thousand times.
     *Charm Person* (no conc.; folksy Southern charm, 2 humanoids at a level 2 slot; target knows afterwards).
 11. **Gear:** Hermit package (minus lamp and oil; the pipe has *Light*, and he has Devil's Sight) + Warlock 100 GP option.
     - Worn: black denim work overalls, rolled-sleeve work shirt, black leather Red Wing boots (traveler's clothes)
-    - Weapons: conjured pact stake (shortsword stats), 3 real wooden stakes, quarterstaff (walking stick)
+    - Weapons: conjured long pact stake / walking stick (Trident stats), 3 small real wooden stakes (for pinning vampires)
     - Focus: corncob pipe (as a wand, 10 GP), tamper, and a **tobacco tin** whose polished lid doubles as a mirror (vampire test)
     - Healer's Kit (10 uses), Herbalism Kit (kept: craft Potions of Healing, Antitoxin, Healer's Kit refills), bedroll
     - Backpack, 10 days of rations, 50 ft rope, waterskin (bought separately instead of the Explorer's Pack: no torches, tinderbox or oil; Prestidigitation lights the pipe)
@@ -48,7 +52,7 @@ of *The Hobbit* he has read a thousand times.
 ## Level 3 snapshot (in progress)
 - HP 24 (8 + 2 x 5, +2 CON per level) · AC 15 with Armor of Shadows · Speed 30 · Prof +2
 - Spell save DC 14 · Spell attack +6 · Pact slots: 2 x level 2 (recharge on Short Rest)
-- Stake: +6 to hit, 1d6 + 4 (Radiant / Psychic / Piercing)
+- Stake: +6 to hit, 1d8 + 4 one-handed / 1d10 + 4 two-handed (Radiant / Psychic / Piercing / Necrotic)
 - Archfey: Steps of the Fey 4/Long Rest (free Misty Step + Refreshing or Taunting Step);
   always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
 - Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
@@ -78,3 +82,6 @@ whittled from that tree's heartwood.
 |---|---|---|---|---|---|---|
 | Option A "Survivor" (recommended) | 11 | 14 | 14+1 = **15** | 7 | 8 | 17+2 = **19** |
 | Option B "Lumberjack" | 14 | 11 | 14+1 = **15** | 7 | 8 | 17+2 = **19** |
+
+## Future notes
+- If the party finds the **Sunsword** in Barovia, Pact of the Blade can bond it as his pact weapon.
