@@ -57,7 +57,7 @@ of *The Hobbit* he has read a thousand times.
   always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
 - Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
 - Name: **Cletus** (no surname)
-- Open choices: backstory
+- Backstory: drafted (see below), awaiting feedback
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
@@ -83,5 +83,45 @@ whittled from that tree's heartwood.
 | Option A "Survivor" (recommended) | 11 | 14 | 14+1 = **15** | 7 | 8 | 17+2 = **19** |
 | Option B "Lumberjack" | 14 | 11 | 14+1 = **15** | 7 | 8 | 17+2 = **19** |
 
-## Future notes
+## Backstory (draft)
+**Cletus** was born on a dirt-poor farm on the edge of the Big Thicket in East Texas. The only book in the house was
+his granddaddy's battered copy of *The Hobbit*. The old man read it aloud every night by the stove, and after he
+died Cletus kept on reading it, over and over, until he could quote it better than the Bible. When the farm
+went under, he took up logging. He was good at it: strong hands, steady nerve, and an opinion about how everyone
+else on the crew was holding their saw wrong.
+
+**The tree.** Deep in the Thicket stood an oak older than Texas, which every old-timer said to leave be. The company
+wanted it, and Cletus figured a tree was a tree. It took him two days to bring it down. When it fell, the woods
+went dead quiet, and something spoke to him out of the stump: **the Old Lady of the Thicket**, the spirit who had
+lived in that oak for a thousand years. She did not kill him. She made him a deal instead.
+
+**The pact.** *"For every tree you felled, you'll fell a thing that ought not be standing."* She took the oak's
+heartwood and put it in his hands. Every morning since, he whittles it down to a long, sharp stake, and every
+morning it is whole again. She hollowed his corncob pipe out with a coal from the oak's roots, and it has
+never gone out since. And she gave him her voice: the knack for saying the one thing that cuts a body down to size.
+Cletus was mouthy before. Now it bites.
+
+**The Mists.** One autumn evening a fog rolled into the Thicket that didn't smell like any fog in Texas. The Old
+Lady said only, *"There's a wood out yonder that's sick to the root. Go on, now."* Cletus walked in with his
+stake, his pipe and his book, and walked out under the gray skies of **Barovia**, where the trees are dying,
+the dead don't stay put, and a lord in a castle has been standing a mighty long time.
+
+### Personality
+- **Traits:** He gives advice to anyone, on anything, unasked ("Son, you're holdin' that sword like it owes you
+  money"). He quotes *The Hobbit* for every occasion. Calm in a crisis; he just puffs the pipe and gets to work.
+- **Ideal:** *Work is work.* A job worth doing is worth doing right, whether that's splitting cordwood or staking a vampire.
+- **Bond:** The Old Lady of the Thicket. He owes her a debt and means to pay it, every last tree's worth.
+- **Flaw:** He can't keep his mouth shut, especially around folks with more power than sense. In Barovia that's most of them.
+
+### Hooks for the DM
+- The Old Lady wants Barovia's sick forest healed. The blights and the Gulthias tree on **Yester Hill** are personal for him.
+- *The Hobbit* is from another world. What do Barovians make of a book about a dragon, a burglar and a ring?
+- Strahd may find a man who can't be cowed and won't shut up either very irritating or very interesting.
+
+### Lines
+- "Well, bless your heart." *(right before the Vicious Mockery)*
+- "Git up, ya big baby, it's just a scratch." *(Healing Word)*
+- "Now that weren't neighborly." *(after getting hit)*
+- "It does not do to leave a live dragon out of your calculations. Same goes for vampires." *(quoting The Hobbit)*
+
 - If the party finds the **Sunsword** in Barovia, Pact of the Blade can bond it as his pact weapon.
