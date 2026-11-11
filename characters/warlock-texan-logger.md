@@ -7,7 +7,7 @@
 ## Core fantasy
 Ex-farmer and logger from Texas with a heavy Southern drawl. Ginger, man-bun, belt-length
 beard tied in knots. Black denim work overalls, black leather Red Wing boots, work shirt with
-sleeves rolled below the elbow over thick, veiny forearms. Puffs a corncob pipe, hands out snark
+sleeves rolled below the elbow over thick, veiny forearms. Puffs a pipe carved from his patron's oak, hands out snark
 and unwanted advice, fights with a single wooden stake used like a dagger, and carries a copy
 of *The Hobbit* he has read a thousand times.
 
@@ -16,7 +16,7 @@ of *The Hobbit* he has read a thousand times.
    **Taunting Step** snark at the enemies left behind, reappear and drive the stake (Radiant vs vampires) home.
    Level 6 Misty Escape + Dreadful Step (psychic insults), level 10 Beguiling Defenses (immune to Charm vs Strahd).
    Patron hook: the spirit of the Texas forest he logged dragged him through the Mists as penance.
-   The corncob pipe is his spellcasting focus.
+   His pipe, carved from the same oak heartwood as the stake, is his spellcasting focus.
 2. **Background: Hermit**, a backwoods logger living alone in a cabin. +2 CHA, +1 CON. Healer feat
    (patches allies up while lecturing them). Medicine, Religion, Herbalism Kit. The starting Book is *The Hobbit*.
 3. **Ability scores ("Barovia-safe"):** STR 8 (-1), DEX 14 (+2), CON 15 (+2), INT 7 (-2), WIS 11 (+0), CHA 19 (+4).
@@ -41,7 +41,7 @@ of *The Hobbit* he has read a thousand times.
 11. **Gear:** Hermit package (minus lamp and oil; the pipe has *Light*, and he has Devil's Sight) + Warlock 100 GP option.
     - Worn: black denim work overalls, rolled-sleeve work shirt, black leather Red Wing boots (traveler's clothes)
     - Weapons: conjured long pact stake / walking stick (Trident stats), 3 small real wooden stakes (for pinning vampires)
-    - Focus: corncob pipe (as a wand, 10 GP), tamper, and a **tobacco tin** whose polished lid doubles as a mirror (vampire test)
+    - Focus: oak-heartwood pipe, carved from the same tree as the stake (counts as a wand, 10 GP), tamper, and a **tobacco tin** whose polished lid doubles as a mirror (vampire test)
     - Healer's Kit (10 uses), Herbalism Kit (kept: craft Potions of Healing, Antitoxin, Healer's Kit refills), bedroll
     - Backpack, 10 days of rations, 50 ft rope, waterskin (bought separately instead of the Explorer's Pack: no torches, tinderbox or oil; Prestidigitation lights the pipe)
     - 2 vials of Holy Water
@@ -97,8 +97,8 @@ lived in that oak for a thousand years. She did not kill him. She made him a dea
 
 **The pact.** *"For every tree you felled, you'll fell a thing that ought not be standing."* She took the oak's
 heartwood and put it in his hands. Every morning since, he whittles it down to a long, sharp stake, and every
-morning it is whole again. She hollowed his corncob pipe out with a coal from the oak's roots, and it has
-never gone out since. And she gave him her voice: the knack for saying the one thing that cuts a body down to size.
+morning it is whole again. From the same heartwood he carved himself a pipe, and she lit it with a coal from
+the oak's roots. It has never gone out since, and the smoke still smells of the Thicket. And she gave him her voice: the knack for saying the one thing that cuts a body down to size.
 Cletus was mouthy before. Now it bites.
 
 **The Mists.** One autumn evening a fog rolled into the Thicket that didn't smell like any fog in Texas. The Old
