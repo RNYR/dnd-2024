@@ -26,7 +26,9 @@ of *The Hobbit* he has read a thousand times.
 6. **The stake:** Pact of the Blade weapon with **Shortsword** stats (1d6 + CHA; Radiant, Psychic or Piercing).
    Also carry a real wooden stake for pinning vampires in their coffins (Curse of Strahd rule).
 7. **Skills:** Medicine, Religion (Hermit); Intimidation, Deception (Warlock); Perception (Human).
-8. **Warlock cantrips:** *Prestidigitation* (pipe tricks) + TBD.
+8. **Warlock cantrips:** *Prestidigitation* (pipe tricks) and *Eldritch Blast* as **"Backdraft Spark"**:
+   with the pipe still in his mouth he puffs back into the stem, a curl of smoke rises from the bowl, catches
+   a spark, and the spark streaks to the enemy (1d10 force, 120 ft; more sparks as beams scale).
 9. **Starting level: 3** (campaign starts at level 3).
 
 ## Level 3 snapshot (in progress)
@@ -36,7 +38,7 @@ of *The Hobbit* he has read a thousand times.
 - Archfey: Steps of the Fey 4/Long Rest (free Misty Step + Refreshing or Taunting Step);
   always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
 - Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
-- Open choices: 2nd warlock cantrip, Magic Initiate level 1 spell, 4 prepared warlock spells,
+- Open choices: Magic Initiate level 1 spell, 4 prepared warlock spells,
   2 more invocations (level 2), gear, name and backstory
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
