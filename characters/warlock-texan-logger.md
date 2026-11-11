@@ -38,10 +38,11 @@ of *The Hobbit* he has read a thousand times.
     - Worn: black denim work overalls, rolled-sleeve work shirt, black leather Red Wing boots (traveler's clothes)
     - Weapons: conjured pact stake (shortsword stats), 3 real wooden stakes, quarterstaff (walking stick)
     - Focus: corncob pipe (as a wand, 10 GP), tamper, and a **tobacco tin** whose polished lid doubles as a mirror (vampire test)
-    - Healer's Kit (10 uses), Herbalism Kit, Explorer's Pack, bedroll
+    - Healer's Kit (10 uses), Herbalism Kit (keep or drop: pending), bedroll
+    - Backpack, 10 days of rations, 50 ft rope, waterskin (bought separately instead of the Explorer's Pack: no torches, tinderbox or oil; Prestidigitation lights the pipe)
     - 2 vials of Holy Water
     - *The Hobbit* (dog-eared, read a thousand times)
-    - 38 GP
+    - 39 GP 8 SP
 12. **Starting level: 3** (campaign starts at level 3).
 
 ## Level 3 snapshot (in progress)
