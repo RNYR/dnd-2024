@@ -1,4 +1,4 @@
-# The Texan Logger: Warlock (D&D 2024)
+# Cletus: Texan Logger Warlock (D&D 2024)
 
 > Campaign: **Curse of Strahd (Barovia)**
 >
@@ -51,7 +51,8 @@ of *The Hobbit* he has read a thousand times.
 - Archfey: Steps of the Fey 4/Long Rest (free Misty Step + Refreshing or Taunting Step);
   always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
 - Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
-- Open choices: name and backstory
+- Name: **Cletus** (no surname)
+- Open choices: backstory
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
