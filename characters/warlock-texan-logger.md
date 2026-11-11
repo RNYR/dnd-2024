@@ -37,11 +37,11 @@ of *The Hobbit* he has read a thousand times.
 11. **Gear:** Hermit package (minus lamp and oil; the pipe has *Light*, and he has Devil's Sight) + Warlock 100 GP option.
     - Worn: black denim work overalls, rolled-sleeve work shirt, black leather Red Wing boots (traveler's clothes)
     - Weapons: conjured pact stake (shortsword stats), 3 real wooden stakes, quarterstaff (walking stick)
-    - Focus: corncob pipe (as a wand, 10 GP), pipe tobacco and tamper
+    - Focus: corncob pipe (as a wand, 10 GP), tamper, and a **tobacco tin** whose polished lid doubles as a mirror (vampire test)
     - Healer's Kit (10 uses), Herbalism Kit, Explorer's Pack, bedroll
-    - 2 vials of Holy Water, steel mirror, crowbar
+    - 2 vials of Holy Water
     - *The Hobbit* (dog-eared, read a thousand times)
-    - 31 GP
+    - 38 GP
 12. **Starting level: 3** (campaign starts at level 3).
 
 ## Level 3 snapshot (in progress)
