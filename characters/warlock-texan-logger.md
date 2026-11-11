@@ -22,7 +22,7 @@ of *The Hobbit* he has read a thousand times.
 3. **Ability scores ("Barovia-safe"):** STR 8 (-1), DEX 14 (+2), CON 15 (+2), INT 7 (-2), WIS 11 (+0), CHA 19 (+4).
    Wiry, leathery strength rather than bulk.
 4. **Species: Human.** Resourceful (Heroic Inspiration each Long Rest), Skillful (Perception), Versatile (Magic Initiate).
-5. **Magic Initiate (Bard):** cantrips *Vicious Mockery* and *Light* (glowing pipe bowl). Level 1 spell: TBD.
+5. **Magic Initiate (Bard):** cantrips *Vicious Mockery* and *Light* (glowing pipe bowl). Level 1 spell: **Healing Word** ("Git up, ya big baby, it's just a scratch"), free 1/Long Rest or with Pact slots.
 6. **The stake:** Pact of the Blade weapon with **Shortsword** stats (1d6 + CHA; Radiant, Psychic or Piercing).
    Also carry a real wooden stake for pinning vampires in their coffins (Curse of Strahd rule).
 7. **Skills:** Medicine, Religion (Hermit); Intimidation, Deception (Warlock); Perception (Human).
@@ -43,7 +43,7 @@ of *The Hobbit* he has read a thousand times.
 - Archfey: Steps of the Fey 4/Long Rest (free Misty Step + Refreshing or Taunting Step);
   always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
 - Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
-- Open choices: Magic Initiate level 1 spell, gear, name and backstory
+- Open choices: gear, name and backstory
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
