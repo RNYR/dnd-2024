@@ -1,6 +1,8 @@
 # The Texan Logger: Warlock (D&D 2024)
 
-> Status: **Step 1 of build, awaiting decisions** (species, background, ability scores)
+> Campaign: **Curse of Strahd (Barovia)**
+>
+> Status: building step by step, one decision at a time
 
 ## Core fantasy
 Ex-farmer and logger from Texas with a heavy Southern drawl. Ginger, man-bun, belt-length
@@ -9,7 +11,14 @@ sleeves rolled below the elbow over thick, veiny forearms. Puffs a corncob pipe,
 and unwanted advice, fights with a single wooden stake used like a dagger, and carries a copy
 of *The Hobbit* he has read a thousand times.
 
-## Design goal: three signature strengths
+## Decisions so far
+1. **Patron: Archfey.** Signature combo: a long puff of the pipe, vanish in smoke (Steps of the Fey / Misty Step),
+   **Taunting Step** snark at the enemies left behind, reappear and drive the stake (Radiant vs vampires) home.
+   Level 6 Misty Escape + Dreadful Step (psychic insults), level 10 Beguiling Defenses (immune to Charm vs Strahd).
+   Patron hook: the spirit of the Texas forest he logged dragged him through the Mists as penance.
+   The corncob pipe is his spellcasting focus.
+
+## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
 |---|---|
 | **The wooden stake** | Pact of the Blade (stake is the pact weapon, uses CHA, can deal Psychic damage), later Thirsting Blade (Extra Attack), Eldritch Smite, Lifedrinker |
