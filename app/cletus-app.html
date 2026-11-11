@@ -1,0 +1,1530 @@
+<title>Cletus Companion</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@600&family=Alegreya+Sans+SC:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+/* Layout: phone-first single column; fixed bottom tab bar; bottom sheets for actions; widens to two columns on tablets. */
+:root {
+  --paper: #eef0ea;
+  --panel: #f8f9f5;
+  --ink: #1d2420;
+  --muted: #5b675f;
+  --line: #c9d0c7;
+  --moss: #3b5a44;
+  --moss-ink: #f4f7f2;
+  --ember: #b9561c;
+  --ember-ink: #fff7f0;
+  --chip: #e2e8df;
+  --bad: #a3322a;
+  --good: #2f6b3e;
+  --shade: rgba(20, 28, 22, .45);
+  --display: "Grenze Gotisch", Georgia, serif;
+  --label: "Alegreya Sans SC", "Alegreya Sans", system-ui, sans-serif;
+  --body: "Alegreya Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121814; --panel: #1b231e; --ink: #e4e9e2; --muted: #9aa79d; --line: #34413a;
+    --moss: #8fb59a; --moss-ink: #10180f; --ember: #f0904f; --ember-ink: #1d1006; --chip: #26322b;
+    --bad: #f08a80; --good: #8fd19e; --shade: rgba(0, 0, 0, .6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121814; --panel: #1b231e; --ink: #e4e9e2; --muted: #9aa79d; --line: #34413a;
+  --moss: #8fb59a; --moss-ink: #10180f; --ember: #f0904f; --ember-ink: #1d1006; --chip: #26322b;
+  --bad: #f08a80; --good: #8fd19e; --shade: rgba(0, 0, 0, .6); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--paper); }
+body {
+  color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.4;
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  padding-block: 10px calc(140px + env(safe-area-inset-bottom, 0px));
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 12px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.brand { font-family: var(--display); font-size: 34px; line-height: 1; }
+.brand small { font-family: var(--body); font-size: 13px; color: var(--muted); display: block; }
+.status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; text-align: right; }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.status.ok i { background: var(--good); }
+.status.warn i { background: var(--ember); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-width: 0; }
+h2 { font-family: var(--label); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--moss); margin: 0 0 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+h3 { font-family: var(--label); font-size: 16px; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stack { display: grid; gap: 8px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.spread { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cols { display: grid; gap: 12px; }
+@media (min-width: 760px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 9px 12px; min-height: 42px; font-weight: 500; }
+.btn.pri { background: var(--moss); color: var(--moss-ink); border-color: var(--moss); }
+.btn.hot { background: var(--ember); color: var(--ember-ink); border-color: var(--ember); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--bad); border-color: var(--bad); background: transparent; }
+.btn.sm { min-height: 34px; padding: 5px 10px; font-size: 14px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.full { width: 100%; }
+
+/* Vitals */
+.vit { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px; text-align: center; display: grid; gap: 2px; align-content: center; }
+.tile .lbl, .lbl { font-family: var(--label); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.tile .big { font-size: 30px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.tile .sub { font-size: 12px; color: var(--muted); }
+.hp-tile { border-color: var(--moss); }
+.hp-tile .big { font-size: 38px; }
+.hp-bar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+.hp-bar b { display: block; height: 100%; background: var(--moss); }
+.hp-bar b.low { background: var(--ember); }
+.hp-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.banner { border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; justify-content: space-between; border: 1px solid var(--ember); background: var(--panel); }
+.banner b { color: var(--ember); }
+.down { border-color: var(--bad); }
+.down b { color: var(--bad); }
+
+/* Trackers */
+.trk { display: grid; gap: 6px; }
+.trk-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.trk-row:last-child { border-bottom: 0; }
+.trk-name { min-width: 0; }
+.trk-name .small { display: block; }
+.pips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.pip { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--moss); background: transparent; padding: 0; }
+.pip.used { background: transparent; border-style: dashed; border-color: var(--muted); }
+.pip.full { background: var(--moss); }
+.pip.sq { border-radius: 6px; }
+.pip.dsx { border-color: var(--bad); }
+.pip.dsx.full { background: var(--bad); }
+.pip.dsg { border-color: var(--good); }
+.pip.dsg.full { background: var(--good); }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper .btn { width: 38px; padding: 0; min-height: 34px; }
+.stepper b { min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 10px; font-size: 14px; min-height: 32px; }
+.chip.on { background: var(--ember); color: var(--ember-ink); border-color: var(--ember); }
+.tag { display: inline-block; font-size: 11px; font-family: var(--label); letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; background: var(--chip); color: var(--muted); white-space: nowrap; vertical-align: middle; }
+.tag.c { background: var(--ember); color: var(--ember-ink); }
+.tag.g { background: var(--moss); color: var(--moss-ink); }
+.cond-notes { display: grid; gap: 4px; font-size: 14px; }
+
+/* Attack list */
+.atk { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.atk:last-child { border-bottom: 0; }
+.atk .nm { font-weight: 700; }
+.atk .meta { font-size: 13px; color: var(--muted); grid-column: 1; }
+.atk .acts { grid-row: 1 / span 2; grid-column: 2; display: flex; gap: 6px; }
+
+/* Spells */
+.spell { padding: 10px 0; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+.spell:last-child { border-bottom: 0; }
+.spell .hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.spell .meta { font-size: 13px; color: var(--muted); }
+.spell .desc { font-size: 14px; }
+.grp { font-family: var(--label); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 8px 0 2px; }
+
+/* Inventory */
+.item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.item:last-child { border-bottom: 0; }
+.item .nm { font-weight: 500; overflow-wrap: anywhere; }
+.item .note { font-size: 13px; color: var(--muted); grid-column: 1; overflow-wrap: anywhere; }
+.item .stepper { grid-row: 1 / span 2; grid-column: 2; }
+.coins { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.coin { text-align: center; border: 1px solid var(--line); border-radius: 8px; padding: 6px 2px; display: grid; gap: 4px; }
+.coin input { width: 100%; text-align: center; border: 0; background: transparent; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; padding: 0; }
+
+/* Notes */
+.note-card { text-align: left; width: 100%; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; }
+.note-card .body { font-size: 14px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Sheet */
+.ab-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ab { border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px; text-align: center; background: var(--panel); }
+.ab .m { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.lst { display: grid; }
+.lst button { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; text-align: left; padding: 7px 2px; border: 0; border-bottom: 1px solid var(--line); background: transparent; min-height: 38px; }
+.lst button:last-child { border-bottom: 0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.dot.p { background: var(--moss); border-color: var(--moss); }
+.dot.e { background: var(--ember); border-color: var(--ember); }
+.feat { padding: 8px 0; border-bottom: 1px solid var(--line); display: grid; gap: 2px; }
+.feat:last-child { border-bottom: 0; }
+.feat p { font-size: 14px; }
+.prose { display: grid; gap: 8px; font-size: 15px; max-width: 68ch; }
+
+/* Form */
+label.f { display: grid; gap: 4px; font-size: 14px; }
+input.in, select.in, textarea.in { width: 100%; border: 1px solid var(--line); background: var(--paper); border-radius: 8px; padding: 9px 10px; min-height: 42px; }
+textarea.in { min-height: 160px; resize: vertical; }
+input.die { width: 76px; text-align: center; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 7px 12px; min-height: 38px; }
+.seg button.on { background: var(--moss); color: var(--moss-ink); }
+.opt { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: start; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.opt:last-child { border-bottom: 0; }
+.opt input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--moss); }
+.opt.dis { opacity: .5; }
+.opt .small { display: block; }
+
+/* Roll result */
+.result { border: 2px solid var(--moss); border-radius: 12px; padding: 12px; text-align: center; display: grid; gap: 4px; }
+.result .total { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.result.crit { border-color: var(--ember); }
+.result.fail { border-color: var(--bad); }
+.breakdown { font-size: 14px; color: var(--muted); }
+
+/* Tab bar */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  padding: 4px max(6px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+}
+.tabs button { border: 0; background: transparent; padding: 6px 2px; min-height: 52px; display: grid; justify-items: center; gap: 2px; font-family: var(--label); font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+.tabs button svg { width: 22px; height: 22px; }
+.tabs button.on { color: var(--moss); font-weight: 700; }
+.fab {
+  position: fixed; z-index: 21; right: max(14px, env(safe-area-inset-right, 0px));
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  background: var(--ember); color: var(--ember-ink); border: 0; border-radius: 999px; padding: 12px 18px; font-weight: 700; font-size: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25); display: flex; gap: 8px; align-items: center;
+}
+.fab svg { width: 20px; height: 20px; }
+
+/* Bottom sheet */
+.ov { position: fixed; inset: 0; z-index: 40; background: var(--shade); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--paper); width: 100%; max-width: 640px; max-height: 92%; overflow-y: auto; border-radius: 16px 16px 0 0;
+  padding: 14px max(14px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
+  display: grid; gap: 12px; align-content: start;
+}
+.sheet .sh-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; position: sticky; top: -14px; background: var(--paper); padding: 4px 0; z-index: 1; }
+.sheet .sh-hd h3 { font-size: 19px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(132px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 8px; font-size: 14px; max-width: calc(100% - 32px); }
+.empty { text-align: center; padding: 30px 10px; display: grid; gap: 8px; justify-items: center; }
+.wiz-steps { display: flex; gap: 4px; }
+.wiz-steps i { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+.wiz-steps i.on { background: var(--moss); }
+@media (prefers-reduced-motion: no-preference) { .sheet { animation: up .18s ease-out; } @keyframes up { from { transform: translateY(24px); opacity: .6; } } }
+</style>
+
+<div class="wrap" id="app">
+  <div class="topbar">
+    <div class="brand">Cletus<small id="subtitle">Loading character…</small></div>
+    <div class="status" id="status"><i></i><span>Connecting…</span></div>
+  </div>
+  <div id="view"><div class="card empty"><p>Loading Cletus…</p></div></div>
+</div>
+
+<button class="fab" id="fab" type="button" data-act="roll" aria-label="Open roll helper">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2v20M3 7l9 5 9-5"/></svg>Roll
+</button>
+
+<nav class="tabs" id="tabs" aria-label="Sections">
+  <button type="button" data-tab="play" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>Play</button>
+  <button type="button" data-tab="spells"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-2 3-5 5-5 9a5 5 0 0 0 10 0c0-4-3-6-5-9z"/><path d="M12 12c-1 1.5-2 2.5-2 4a2 2 0 0 0 4 0c0-1.5-1-2.5-2-4z"/></svg>Spells</button>
+  <button type="button" data-tab="bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Bag</button>
+  <button type="button" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Notes</button>
+  <button type="button" data-tab="sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Sheet</button>
+</nav>
+
+<div id="layer"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------------- Rules data (2024 PHB, summarized) ---------------- */
+const AB = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+const ABN = { str: 'Strength', dex: 'Dexterity', con: 'Constitution', int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma' };
+const SKILLS = [
+  ['athletics', 'Athletics', 'str'], ['acrobatics', 'Acrobatics', 'dex'], ['sleight', 'Sleight of Hand', 'dex'], ['stealth', 'Stealth', 'dex'],
+  ['arcana', 'Arcana', 'int'], ['history', 'History', 'int'], ['investigation', 'Investigation', 'int'], ['nature', 'Nature', 'int'], ['religion', 'Religion', 'int'],
+  ['animal', 'Animal Handling', 'wis'], ['insight', 'Insight', 'wis'], ['medicine', 'Medicine', 'wis'], ['perception', 'Perception', 'wis'], ['survival', 'Survival', 'wis'],
+  ['deception', 'Deception', 'cha'], ['intimidation', 'Intimidation', 'cha'], ['performance', 'Performance', 'cha'], ['persuasion', 'Persuasion', 'cha']
+];
+const SKN = Object.fromEntries(SKILLS.map(s => [s[0], s]));
+
+// Warlock progression by level (index = level)
+const INV_COUNT = [0, 1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
+const CANTRIPS = [0, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+const PREPARED = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15];
+const SLOTS = [0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4];
+const SLOT_LVL = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
+const ASI_LEVELS = [4, 8, 12, 16];
+const ARCANUM = { 11: 6, 13: 7, 15: 8, 17: 9 };
+
+// [id, name, level, time, range, concentration, summary, source]  source: w = warlock list, fey = Archfey, mi = Magic Initiate, x = feature
+const SPELL_ROWS = [
+  ['bladeWard', 'Blade Ward', 0, 'Action', 'Self', 1, 'For 1 minute, attackers subtract 1d4 from attack rolls against you.', 'w'],
+  ['chillTouch', 'Chill Touch', 0, 'Action', 'Touch', 0, 'Melee spell attack: 1d10 Necrotic, and the target can\'t regain HP until the end of your next turn.', 'w'],
+  ['eldritchBlast', 'Eldritch Blast', 0, 'Action', '120 ft', 0, '"Backdraft Spark." One spell attack per beam, 1d10 Force each. 2 beams at level 5, 3 at 11, 4 at 17.', 'w'],
+  ['friends', 'Friends', 0, 'Action', '10 ft', 1, 'One creature makes a Wis save or is Charmed by you for 1 minute. It knows afterwards.', 'w'],
+  ['mageHand', 'Mage Hand', 0, 'Action', '30 ft', 0, 'A spectral hand handles objects up to 10 lb for 1 minute.', 'w'],
+  ['mindSliver', 'Mind Sliver', 0, 'Action', '60 ft', 0, 'Int save or 1d6 Psychic and it subtracts 1d4 from its next saving throw.', 'w'],
+  ['minorIllusion', 'Minor Illusion', 0, 'Action', '30 ft', 0, 'Create a sound or the image of an object for 1 minute.', 'w'],
+  ['poisonSpray', 'Poison Spray', 0, 'Action', '30 ft', 0, 'Ranged spell attack: 1d12 Poison. Most undead are immune.', 'w'],
+  ['prestidigitation', 'Prestidigitation', 0, 'Action', '10 ft', 0, 'Minor tricks for up to 1 hour: light the pipe, smoke rings, clean, chill, flavor, mark.', 'w'],
+  ['thunderclap', 'Thunderclap', 0, 'Action', 'Self (5 ft)', 0, 'Each creature within 5 ft makes a Con save or takes 1d6 Thunder. Heard 100 ft away.', 'w'],
+  ['tollTheDead', 'Toll the Dead', 0, 'Action', '60 ft', 0, 'Wis save or 1d8 Necrotic (1d12 if it is missing HP). Undead often resist necrotic.', 'w'],
+  ['trueStrike', 'True Strike', 0, 'Action', 'Self', 0, 'One weapon attack using CHA; it can deal Radiant. Extra Radiant: 1d6 at level 5, 2d6 at 11, 3d6 at 17.', 'w'],
+  ['viciousMockery', 'Vicious Mockery', 0, 'Action', '60 ft', 0, 'Wis save or 1d6 Psychic and Disadvantage on its next attack roll. "Well, bless your heart."', 'mi'],
+  ['light', 'Light', 0, 'Action', 'Touch', 0, 'The pipe bowl glows: bright light 20 ft, dim light 20 ft more, for 1 hour.', 'mi'],
+  ['healingWord', 'Healing Word', 1, 'Bonus', '60 ft', 0, 'Heal 2d4 + CHA. +2d4 per slot level above 1. "Git up, ya big baby."', 'mi'],
+  ['mageArmor', 'Mage Armor', 1, 'Action', 'Self', 0, 'AC 13 + Dex for 8 hours. Armor of Shadows: at will, no slot.', 'x'],
+  ['contactOtherPlane', 'Contact Other Plane', 5, '1 Minute', 'Self', 0, 'Ask an otherworldly entity up to five questions. Contact Patron: free once per Long Rest and you succeed on the save.', 'w'],
+  ['armorAgathys', 'Armor of Agathys', 1, 'Action', 'Self', 0, 'Gain 5 temp HP per slot level. While they last, melee attackers take 5 Cold per slot level.', 'w'],
+  ['armsHadar', 'Arms of Hadar', 1, 'Action', 'Self (10 ft)', 0, 'Str save or 2d6 Necrotic and no reactions; half on a success. +1d6 per slot level above 1.', 'w'],
+  ['charmPerson', 'Charm Person', 1, 'Action', '30 ft', 0, 'Humanoid makes a Wis save (Advantage if you are fighting it) or is Charmed for 1 hour. +1 target per slot level above 1.', 'w'],
+  ['comprehendLanguages', 'Comprehend Languages', 1, 'Action', 'Self', 0, 'Understand any spoken or written language for 1 hour. Ritual.', 'w'],
+  ['expeditiousRetreat', 'Expeditious Retreat', 1, 'Bonus', 'Self', 1, 'Dash now, and as a Bonus Action each turn, for 10 minutes.', 'w'],
+  ['hellishRebuke', 'Hellish Rebuke', 1, 'Reaction', '60 ft', 0, 'When damaged: the attacker makes a Dex save, 2d10 Fire (half on success). +1d10 per slot level above 1.', 'w'],
+  ['hex', 'Hex', 1, 'Bonus', '90 ft', 1, 'Your hits deal +1d6 Necrotic to the target, and it has Disadvantage on checks with one ability. Move it when the target drops to 0 HP.', 'w'],
+  ['illusoryScript', 'Illusory Script', 1, '1 Minute', 'Touch', 0, 'Write a message only chosen readers can read. Ritual.', 'w'],
+  ['protEvilGood', 'Protection from Evil and Good', 1, 'Action', 'Touch', 1, 'Aberrations, celestials, elementals, fey, fiends and undead have Disadvantage to hit the target and can\'t charm, frighten or possess it.', 'w'],
+  ['unseenServant', 'Unseen Servant', 1, 'Action', '60 ft', 0, 'An invisible force does simple tasks for 1 hour. Ritual.', 'w'],
+  ['witchBolt', 'Witch Bolt', 1, 'Action', '60 ft', 1, 'Spell attack: 2d12 Lightning, then 1d12 each turn as a Bonus Action.', 'w'],
+  ['cloudDaggers', 'Cloud of Daggers', 2, 'Action', '60 ft', 1, 'A 5-ft cube of whirling splinters: 4d4 Slashing to anything that enters or starts there.', 'w'],
+  ['crownMadness', 'Crown of Madness', 2, 'Action', '120 ft', 1, 'Humanoid makes a Wis save or you choose whom it attacks.', 'w'],
+  ['darkness', 'Darkness', 2, 'Action', '60 ft', 1, '15-ft-radius magical darkness (black pipe smoke) for 10 minutes. Devil\'s Sight sees through it.', 'w'],
+  ['enthrall', 'Enthrall', 2, 'Action', '60 ft', 1, 'Creatures make a Wis save or have Disadvantage on Perception to notice anyone but you.', 'w'],
+  ['holdPerson', 'Hold Person', 2, 'Action', '60 ft', 1, 'Humanoid makes a Wis save or is Paralyzed; it saves again each turn. Hits from within 5 ft are critical.', 'w'],
+  ['invisibility', 'Invisibility', 2, 'Action', 'Touch', 1, 'A creature is Invisible for 1 hour or until it attacks, deals damage or casts.', 'w'],
+  ['mindSpike', 'Mind Spike', 2, 'Action', '120 ft', 1, 'Wis save or 3d8 Psychic (half on success); you know where it is while concentrating.', 'w'],
+  ['mirrorImage', 'Mirror Image', 2, 'Action', 'Self', 0, 'Three illusory duplicates draw attacks away from you for 1 minute.', 'w'],
+  ['mistyStep', 'Misty Step', 2, 'Bonus', 'Self', 0, 'Teleport up to 30 ft to a space you can see. Free with Steps of the Fey.', 'w'],
+  ['rayEnfeeblement', 'Ray of Enfeeblement', 2, 'Action', '60 ft', 1, 'Con save or it has Disadvantage on Strength tests and deals 1d8 less damage.', 'w'],
+  ['spiderClimb', 'Spider Climb', 2, 'Action', 'Touch', 1, 'Climb walls and ceilings with hands free for 1 hour.', 'w'],
+  ['suggestion', 'Suggestion', 2, 'Action', '30 ft', 1, 'Wis save or the target follows a reasonable-sounding suggestion for up to 8 hours.', 'w'],
+  ['counterspell', 'Counterspell', 3, 'Reaction', '60 ft', 0, 'Interrupt a creature casting a spell: it makes a Con save or the spell fails.', 'w'],
+  ['dispelMagic', 'Dispel Magic', 3, 'Action', '120 ft', 0, 'End spells of level 3 or lower on a target; higher ones need a check.', 'w'],
+  ['fear', 'Fear', 3, 'Action', '30-ft cone', 1, 'Wis save or drop what it holds, become Frightened and flee.', 'w'],
+  ['fly', 'Fly', 3, 'Action', 'Touch', 1, 'Fly speed 60 ft for 10 minutes.', 'w'],
+  ['gaseousForm', 'Gaseous Form', 3, 'Action', 'Touch', 1, 'Turn a willing creature into mist for 1 hour.', 'w'],
+  ['hungerHadar', 'Hunger of Hadar', 3, 'Action', '150 ft', 1, '20-ft sphere of darkness: 2d6 Cold at turn start, 2d6 Acid on a failed Dex save at turn end.', 'w'],
+  ['hypnoticPattern', 'Hypnotic Pattern', 3, 'Action', '120 ft', 1, '30-ft cube: Wis save or Charmed and Incapacitated with speed 0.', 'w'],
+  ['magicCircle', 'Magic Circle', 3, '1 Minute', '10 ft', 0, 'A cylinder that hinders celestials, elementals, fey, fiends or undead for 1 hour.', 'w'],
+  ['majorImage', 'Major Image', 3, 'Action', '120 ft', 1, 'An illusion with sound, smell and temperature.', 'w'],
+  ['removeCurse', 'Remove Curse', 3, 'Action', 'Touch', 0, 'End all curses on a creature or object.', 'w'],
+  ['summonFey', 'Summon Fey', 3, 'Action', '90 ft', 1, 'Summon a Fey Spirit that fights beside you.', 'w'],
+  ['summonUndead', 'Summon Undead', 3, 'Action', '90 ft', 1, 'Summon an Undead Spirit that fights beside you.', 'w'],
+  ['tongues', 'Tongues', 3, 'Action', 'Touch', 0, 'Understand and be understood in any language for 1 hour.', 'w'],
+  ['vampiricTouch', 'Vampiric Touch', 3, 'Action', 'Self', 1, 'Melee spell attacks deal 3d6 Necrotic and heal you for half.', 'w'],
+  ['banishment', 'Banishment', 4, 'Action', '30 ft', 1, 'Cha save or the target is banished to a harmless demiplane.', 'w'],
+  ['blight', 'Blight', 4, 'Action', '30 ft', 0, 'Con save or 8d8 Necrotic (half on success). Maximum damage to plants.', 'w'],
+  ['charmMonster', 'Charm Monster', 4, 'Action', '30 ft', 0, 'Any creature makes a Wis save or is Charmed for 1 hour.', 'w'],
+  ['dimensionDoor', 'Dimension Door', 4, 'Action', '500 ft', 0, 'Teleport up to 500 ft, bringing one willing creature.', 'w'],
+  ['hallucinatoryTerrain', 'Hallucinatory Terrain', 4, '10 Minutes', '300 ft', 0, 'Make natural terrain look, sound and smell like other terrain.', 'w'],
+  ['summonAberration', 'Summon Aberration', 4, 'Action', '90 ft', 1, 'Summon an Aberrant Spirit.', 'w'],
+  ['dream', 'Dream', 5, '1 Minute', 'Special', 0, 'Shape a creature\'s dreams: send a message or a nightmare.', 'w'],
+  ['holdMonster', 'Hold Monster', 5, 'Action', '90 ft', 1, 'A creature makes a Wis save or is Paralyzed; it saves again each turn.', 'w'],
+  ['jallarzi', 'Jallarzi\'s Storm of Radiance', 5, 'Action', '120 ft', 1, '10-ft cylinder: Con save or 2d10 Radiant plus 2d10 Thunder each turn; blinds and deafens.', 'w'],
+  ['mislead', 'Mislead', 5, 'Action', 'Self', 1, 'You turn Invisible while an illusory double acts for you.', 'w'],
+  ['planarBinding', 'Planar Binding', 5, '1 Hour', '60 ft', 0, 'Bind a celestial, elemental, fey or fiend to your service.', 'w'],
+  ['scrying', 'Scrying', 5, '10 Minutes', 'Self', 1, 'See and hear a creature on the same plane.', 'w'],
+  ['synapticStatic', 'Synaptic Static', 5, 'Action', '120 ft', 0, '20-ft sphere: Int save or 8d6 Psychic and muddled thoughts.', 'w'],
+  ['teleportationCircle', 'Teleportation Circle', 5, '1 Minute', '10 ft', 0, 'Open a portal to a known teleportation circle.', 'w'],
+  ['arcaneGate', 'Arcane Gate', 6, 'Action', '500 ft', 1, 'Link two portals up to 500 ft apart.', 'w'],
+  ['circleDeath', 'Circle of Death', 6, 'Action', '150 ft', 0, '60-ft sphere: Con save or 8d8 Necrotic (half on success).', 'w'],
+  ['createUndead', 'Create Undead', 6, '1 Minute', '10 ft', 0, 'Raise ghouls from corpses under your control.', 'w'],
+  ['eyebite', 'Eyebite', 6, 'Action', 'Self', 1, 'Each turn, force a Wis save: Asleep, Panicked or Sickened.', 'w'],
+  ['findThePath', 'Find the Path', 6, '1 Minute', 'Self', 1, 'Know the shortest route to a familiar location.', 'w'],
+  ['massSuggestion', 'Mass Suggestion', 6, 'Action', '60 ft', 0, 'Up to twelve creatures follow a suggestion for 24 hours.', 'w'],
+  ['summonFiend', 'Summon Fiend', 6, 'Action', '90 ft', 1, 'Summon a Fiendish Spirit.', 'w'],
+  ['tashasCauldron', 'Tasha\'s Bubbling Cauldron', 6, 'Action', '5 ft', 0, 'A cauldron that brews copies of a potion you have.', 'w'],
+  ['trueSeeing', 'True Seeing', 6, 'Action', 'Touch', 0, 'Truesight 120 ft for 1 hour.', 'w'],
+  ['etherealness', 'Etherealness', 7, 'Action', 'Self', 0, 'Step into the Border Ethereal for up to 8 hours.', 'w'],
+  ['fingerDeath', 'Finger of Death', 7, 'Action', '60 ft', 0, 'Con save or 7d8 + 30 Necrotic (half on success). A humanoid it kills rises as a zombie.', 'w'],
+  ['forcecage', 'Forcecage', 7, 'Action', '100 ft', 1, 'An invisible cage of force traps creatures.', 'w'],
+  ['planeShift', 'Plane Shift', 7, 'Action', 'Touch', 0, 'Travel to another plane, or banish a creature (Cha save).', 'w'],
+  ['befuddlement', 'Befuddlement', 8, 'Action', '150 ft', 0, 'Int save or 10d12 Psychic and the target can\'t cast spells.', 'w'],
+  ['demiplane', 'Demiplane', 8, 'Action', '60 ft', 0, 'Create a door to an empty 30-ft room in its own demiplane.', 'w'],
+  ['dominateMonster', 'Dominate Monster', 8, 'Action', '60 ft', 1, 'Any creature makes a Wis save or you control it.', 'w'],
+  ['glibness', 'Glibness', 8, 'Action', 'Self', 0, 'Treat CHA checks below 15 as 15, and magic can\'t detect your lies.', 'w'],
+  ['powerWordStun', 'Power Word Stun', 8, 'Action', '60 ft', 0, 'A creature with 150 HP or fewer is Stunned.', 'w'],
+  ['astralProjection', 'Astral Projection', 9, '1 Hour', '10 ft', 0, 'Project yourself and up to eight others into the Astral Plane.', 'w'],
+  ['foresight', 'Foresight', 9, '1 Minute', 'Touch', 0, 'Advantage on d20 tests and attackers have Disadvantage for 8 hours.', 'w'],
+  ['gate', 'Gate', 9, 'Action', '60 ft', 1, 'Open a portal to another plane, or summon a named creature.', 'w'],
+  ['imprisonment', 'Imprisonment', 9, '1 Minute', '30 ft', 0, 'Wis save or the target is imprisoned in a form you choose.', 'w'],
+  ['powerWordKill', 'Power Word Kill', 9, 'Action', '60 ft', 0, 'A creature with 100 HP or fewer dies; otherwise 12d12 Psychic.', 'w'],
+  ['truePolymorph', 'True Polymorph', 9, 'Action', '30 ft', 1, 'Turn a creature or object into another creature or object.', 'w'],
+  ['weird', 'Weird', 9, 'Action', '120 ft', 1, 'Wis save or Frightened and 10d10 Psychic each turn.', 'w'],
+  ['calmEmotions', 'Calm Emotions', 2, 'Action', '60 ft', 1, '20-ft sphere: Cha save or charm and fear are suppressed, or hostility is calmed.', 'fey'],
+  ['faerieFire', 'Faerie Fire', 1, 'Action', '60 ft', 1, '20-ft cube: Dex save or outlined in light; attacks against them have Advantage, and they can\'t be Invisible.', 'fey'],
+  ['phantasmalForce', 'Phantasmal Force', 2, 'Action', '60 ft', 1, 'Int save or the target perceives an illusion that deals 2d8 Psychic each turn.', 'fey'],
+  ['sleep', 'Sleep', 1, 'Action', '60 ft', 1, '5-ft radius: Wis save or Incapacitated, then Unconscious. Creatures that don\'t sleep (most undead) are unaffected.', 'fey'],
+  ['blink', 'Blink', 3, 'Action', 'Self', 0, 'At the end of each turn, roll: on 11+ you vanish to the Ethereal Plane until your next turn.', 'fey'],
+  ['plantGrowth', 'Plant Growth', 3, 'Action', '150 ft', 0, 'Overgrow a 100-ft area (movement costs 4 ft per foot) or enrich crops.', 'fey'],
+  ['dominateBeast', 'Dominate Beast', 4, 'Action', '60 ft', 1, 'A Beast makes a Wis save or you control it.', 'fey'],
+  ['greaterInvisibility', 'Greater Invisibility', 4, 'Action', 'Touch', 1, 'Invisible for 1 minute, even while attacking or casting.', 'fey'],
+  ['dominatePerson', 'Dominate Person', 5, 'Action', '60 ft', 1, 'A Humanoid makes a Wis save or you control it.', 'fey'],
+  ['seeming', 'Seeming', 5, 'Action', '30 ft', 0, 'Change how any number of creatures look for 8 hours.', 'fey']
+];
+const SP = {};
+SPELL_ROWS.forEach(r => { SP[r[0]] = { id: r[0], n: r[1], l: r[2], t: r[3], r: r[4], c: !!r[5], s: r[6], src: r[7] }; });
+const FEY_SPELLS = { 3: ['calmEmotions', 'faerieFire', 'mistyStep', 'phantasmalForce', 'sleep'], 5: ['blink', 'plantGrowth'], 7: ['dominateBeast', 'greaterInvisibility'], 9: ['dominatePerson', 'seeming'] };
+const DMG_CANTRIPS = ['eldritchBlast', 'chillTouch', 'mindSliver', 'poisonSpray', 'thunderclap', 'tollTheDead', 'trueStrike'];
+
+// [id, name, minLevel, needs, summary, repeat]  needs: blade | thirsting | dmgCantrip
+const INV_ROWS = [
+  ['pactBlade', 'Pact of the Blade', 1, null, 'Bonus Action: conjure the pact weapon or bond a magic weapon. CHA for attack and damage; it can deal Necrotic, Psychic or Radiant.'],
+  ['armorShadows', 'Armor of Shadows', 1, null, 'Cast Mage Armor on yourself at will, without a spell slot.'],
+  ['eldritchMind', 'Eldritch Mind', 1, null, 'Advantage on Constitution saves to keep Concentration.'],
+  ['agonizingBlast', 'Agonizing Blast', 2, 'dmgCantrip', 'Add CHA to the damage of one damaging warlock cantrip.', 'cantrip'],
+  ['devilsSight', 'Devil\'s Sight', 2, null, 'See normally in dim light and darkness, magical or not, within 120 ft.'],
+  ['eldritchSpear', 'Eldritch Spear', 2, 'dmgCantrip', 'One damaging cantrip reaches 30 ft x warlock level.', 'cantrip'],
+  ['fiendishVigor', 'Fiendish Vigor', 2, null, 'Cast False Life on yourself at will and take the maximum temp HP.'],
+  ['lessonsFirstOnes', 'Lessons of the First Ones', 2, null, 'Gain one Origin feat of your choice.', 'feat'],
+  ['maskManyFaces', 'Mask of Many Faces', 2, null, 'Cast Disguise Self at will.'],
+  ['mistyVisions', 'Misty Visions', 2, null, 'Cast Silent Image at will.'],
+  ['otherworldlyLeap', 'Otherworldly Leap', 2, null, 'Cast Jump on yourself at will.'],
+  ['repellingBlast', 'Repelling Blast', 2, 'dmgCantrip', 'When the chosen cantrip hits, push the target up to 10 ft.', 'cantrip'],
+  ['ascendantStep', 'Ascendant Step', 5, null, 'Cast Levitate on yourself at will.'],
+  ['eldritchSmite', 'Eldritch Smite', 5, 'blade', 'Once per turn on a pact weapon hit, spend a Pact slot: +1d8 Force plus 1d8 per slot level, and knock a Huge or smaller target Prone.'],
+  ['gazeTwoMinds', 'Gaze of Two Minds', 5, null, 'Touch a willing creature and perceive through its senses.'],
+  ['giftDepths', 'Gift of the Depths', 5, null, 'Breathe underwater and swim at your speed; Water Breathing once per Long Rest.'],
+  ['masterMyriad', 'Master of Myriad Forms', 5, null, 'Cast Alter Self at will.'],
+  ['oneWithShadows', 'One with Shadows', 5, null, 'In dim light or darkness, cast Invisibility on yourself without a slot.'],
+  ['thirstingBlade', 'Thirsting Blade', 5, 'blade', 'Extra Attack: attack twice with the pact weapon when you take the Attack action.'],
+  ['whispersGrave', 'Whispers of the Grave', 7, null, 'Cast Speak with Dead at will.'],
+  ['lifedrinker', 'Lifedrinker', 9, 'blade', 'Once per turn on a pact weapon hit: +1d6 Necrotic, Psychic or Radiant, and you can spend a Hit Die to heal.'],
+  ['visionsDistant', 'Visions of Distant Realms', 9, null, 'Cast Arcane Eye at will.'],
+  ['devouringBlade', 'Devouring Blade', 12, 'thirsting', 'Thirsting Blade gives two extra attacks instead of one.'],
+  ['witchSight', 'Witch Sight', 15, null, 'Truesight out to 30 ft.']
+];
+const INV = {};
+INV_ROWS.forEach(r => { INV[r[0]] = { id: r[0], n: r[1], min: r[2], needs: r[3], s: r[4], rep: r[5] || null }; });
+
+const ORIGIN_FEATS = {
+  alert: ['Alert', 'Add your Proficiency Bonus to Initiative; swap Initiative with a willing ally.'],
+  crafter: ['Crafter', 'Proficiency with three Artisan\'s Tools; 20% discount on nonmagical items; craft faster.'],
+  healer: ['Healer', 'Battle Medic: spend a Healer\'s Kit use so an ally spends a Hit Die and heals the roll + PB. Reroll 1s on healing dice.'],
+  lucky: ['Lucky', 'Luck Points equal to your Proficiency Bonus per Long Rest: gain Advantage or impose Disadvantage.'],
+  magicInitiate: ['Magic Initiate', 'Two cantrips and one level 1 spell from one class list.'],
+  musician: ['Musician', 'After a rest, play a song: up to PB allies gain Heroic Inspiration.'],
+  savageAttacker: ['Savage Attacker', 'Once per turn, roll weapon damage dice twice and use either roll.'],
+  skilled: ['Skilled', 'Proficiency in any combination of three skills or tools.'],
+  tavernBrawler: ['Tavern Brawler', 'Better Unarmed Strikes, reroll 1s on them, improvised weapon proficiency, shove on hit.'],
+  tough: ['Tough', 'Hit Point maximum increases by 2 per character level.']
+};
+// [id, name, abilities, prerequisite, summary]
+const GENERAL_FEATS = [
+  ['actor', 'Actor', ['cha'], 'Cha 13+', 'Advantage on Deception and Performance checks to pass as someone else; mimic voices.'],
+  ['athlete', 'Athlete', ['str', 'dex'], 'Str or Dex 13+', 'Climb speed, stand up with 5 ft of movement, longer jumps.'],
+  ['charger', 'Charger', ['str', 'dex'], 'Str or Dex 13+', 'Dash further; after moving 10 ft straight, +1d8 damage or a 10-ft push.'],
+  ['chef', 'Chef', ['con', 'wis'], 'None', 'Cook\'s Utensils; snacks and meals that heal or give temp HP.'],
+  ['crossbowExpert', 'Crossbow Expert', ['dex'], 'Dex 13+', 'Ignore Loading, fire in melee without Disadvantage.'],
+  ['crusher', 'Crusher', ['str', 'con'], 'Str or Con 13+', 'Bludgeoning hits push 5 ft; crits grant Advantage to allies.'],
+  ['defensiveDuelist', 'Defensive Duelist', ['dex'], 'Dex 13+', 'Reaction: add PB to AC against a melee attack while holding a Finesse weapon.'],
+  ['dualWielder', 'Dual Wielder', ['str', 'dex'], 'Str or Dex 13+', 'Extra Bonus Action attack with a second weapon; draw two at once.'],
+  ['durable', 'Durable', ['con'], 'None', 'Advantage on death saves; Bonus Action to spend a Hit Die and heal.'],
+  ['elementalAdept', 'Elemental Adept', ['int', 'wis', 'cha'], 'Spellcasting', 'Your spells ignore resistance to one damage type and treat 1s as 2s.'],
+  ['feyTouched', 'Fey Touched', ['int', 'wis', 'cha'], 'None', 'Misty Step plus one level 1 Divination or Enchantment spell, each free once per Long Rest.'],
+  ['grappler', 'Grappler', ['str', 'dex'], 'Str or Dex 13+', 'Punch and grab in one action; Advantage against creatures you grapple.'],
+  ['greatWeaponMaster', 'Great Weapon Master', ['str'], 'Str 13+', 'Extra damage with Heavy weapons; Bonus Action attack after a crit or kill.'],
+  ['heavilyArmored', 'Heavily Armored', ['str', 'con'], 'Medium armor training', 'Heavy armor training.'],
+  ['heavyArmorMaster', 'Heavy Armor Master', ['str', 'con'], 'Heavy armor training', 'Reduce Bludgeoning, Piercing and Slashing damage by your PB while in heavy armor.'],
+  ['inspiringLeader', 'Inspiring Leader', ['wis', 'cha'], 'Wis or Cha 13+', 'After a rest, give up to six allies temp HP equal to level + CHA.'],
+  ['keenMind', 'Keen Mind', ['int'], 'Int 13+', 'Expertise in one Int skill; Study action as a Bonus Action.'],
+  ['lightlyArmored', 'Lightly Armored', ['str', 'dex'], 'None', 'Light armor and shield training.'],
+  ['mageSlayer', 'Mage Slayer', ['str', 'dex'], 'None', 'Your hits break concentration more often; once per Long Rest pass a failed mental save.'],
+  ['martialWeaponTraining', 'Martial Weapon Training', ['str', 'dex'], 'None', 'Proficiency with Martial weapons.'],
+  ['mediumArmorMaster', 'Medium Armor Master', ['str', 'dex'], 'Medium armor training', 'Medium armor allows +3 Dex to AC.'],
+  ['moderatelyArmored', 'Moderately Armored', ['str', 'dex'], 'Light armor training', 'Medium armor and shield training.'],
+  ['mountedCombatant', 'Mounted Combatant', ['str', 'dex', 'wis'], 'None', 'Advantage against unmounted foes; protect your mount.'],
+  ['observant', 'Observant', ['int', 'wis'], 'Int or Wis 13+', 'Expertise in Insight, Investigation or Perception; Search as a Bonus Action.'],
+  ['piercer', 'Piercer', ['str', 'dex'], 'None', 'Reroll one Piercing damage die per turn; crits add one more die.'],
+  ['poisoner', 'Poisoner', ['dex', 'int'], 'None', 'Your poison damage ignores resistance; brew potent poisons.'],
+  ['polearmMaster', 'Polearm Master', ['str', 'dex'], 'Str or Dex 13+', 'Bonus Action butt-end attack; reaction attack when enemies enter reach.'],
+  ['resilient', 'Resilient', 'any', 'None', '+1 to one ability and proficiency in that ability\'s saving throws.'],
+  ['ritualCaster', 'Ritual Caster', ['int', 'wis', 'cha'], 'Int, Wis or Cha 13+', 'Learn ritual spells; cast one ritual quickly once per Long Rest.'],
+  ['sentinel', 'Sentinel', ['str', 'dex'], 'Str or Dex 13+', 'Opportunity attacks stop movement; punish attacks on your allies.'],
+  ['shadowTouched', 'Shadow Touched', ['int', 'wis', 'cha'], 'None', 'Invisibility plus one level 1 Illusion or Necromancy spell, each free once per Long Rest.'],
+  ['sharpshooter', 'Sharpshooter', ['dex'], 'Dex 13+', 'Ranged attacks ignore cover and long-range Disadvantage.'],
+  ['shieldMaster', 'Shield Master', ['str'], 'Shield training', 'Shove with your shield; take no damage on a successful Dex save.'],
+  ['skillExpert', 'Skill Expert', 'any', 'None', '+1 to one ability, one skill proficiency, and Expertise in one skill.'],
+  ['skulker', 'Skulker', ['dex'], 'Dex 13+', 'Blindsight 10 ft; hide better; missing doesn\'t reveal you.'],
+  ['slasher', 'Slasher', ['str', 'dex'], 'None', 'Slashing hits reduce speed; crits impose Disadvantage.'],
+  ['speedy', 'Speedy', ['dex', 'con'], 'Dex or Con 13+', '+10 ft speed; Dash ignores difficult terrain; opportunity attacks against you have Disadvantage.'],
+  ['spellSniper', 'Spell Sniper', ['int', 'wis', 'cha'], 'Spellcasting', 'Spell attack range +60 ft, ignore cover, no Disadvantage in melee.'],
+  ['telekinetic', 'Telekinetic', ['int', 'wis', 'cha'], 'None', 'Invisible Mage Hand; Bonus Action shove 5 ft.'],
+  ['telepathic', 'Telepathic', ['int', 'wis', 'cha'], 'None', 'Telepathy 60 ft; Detect Thoughts free once per Long Rest. Unwanted advice, direct to the skull.'],
+  ['warCaster', 'War Caster', ['int', 'wis', 'cha'], 'Spellcasting', 'Advantage on Concentration saves; cast a spell as an opportunity attack.'],
+  ['weaponMaster', 'Weapon Master', ['str', 'dex'], 'None', 'Use the mastery property of one weapon kind.']
+];
+const GF = Object.fromEntries(GENERAL_FEATS.map(f => [f[0], { id: f[0], n: f[1], ab: f[2], pre: f[3], s: f[4] }]));
+const BOONS = {
+  combatProwess: ['Boon of Combat Prowess', 'Once per turn, turn a missed attack into a hit.'],
+  dimensionalTravel: ['Boon of Dimensional Travel', 'After an Attack or Magic action, teleport up to 30 ft.'],
+  energyResistance: ['Boon of Energy Resistance', 'Resistance to two damage types; redirect that damage.'],
+  fate: ['Boon of Fate', 'Add or subtract 2d4 from a d20 test you can see.'],
+  fortitude: ['Boon of Fortitude', '+40 Hit Point maximum; heal extra when healed.'],
+  irresistibleOffense: ['Boon of Irresistible Offense', 'Your attacks ignore Bludgeoning, Piercing and Slashing resistance.'],
+  recovery: ['Boon of Recovery', 'Once per Long Rest drop to 1 HP instead of 0; a pool of d10s to heal.'],
+  skill: ['Boon of Skill', 'Proficiency in all skills and Expertise in one.'],
+  speed: ['Boon of Speed', '+30 ft speed; Disengage as a Bonus Action.'],
+  spellRecall: ['Boon of Spell Recall', 'Cast a level 1-4 spell without a slot once per Long Rest.'],
+  nightSpirit: ['Boon of the Night Spirit', 'Become Invisible in dim light or darkness; resistance there.'],
+  truesight: ['Boon of Truesight', 'Truesight 60 ft.']
+};
+const CONDITIONS = [
+  ['blinded', 'Blinded', 'Can\'t see. Your attacks have Disadvantage; attacks against you have Advantage.'],
+  ['charmed', 'Charmed', 'Can\'t attack the charmer; it has Advantage on social checks with you.'],
+  ['deafened', 'Deafened', 'Can\'t hear.'],
+  ['frightened', 'Frightened', 'Disadvantage on checks and attacks while the source is in sight; can\'t move closer to it.'],
+  ['grappled', 'Grappled', 'Speed 0; Disadvantage on attacks against anyone but the grappler.'],
+  ['incapacitated', 'Incapacitated', 'No actions, Bonus Actions or Reactions; concentration ends.'],
+  ['invisible', 'Invisible', 'Your attacks have Advantage; attacks against you have Disadvantage.'],
+  ['paralyzed', 'Paralyzed', 'Incapacitated, speed 0, fail Str and Dex saves; hits within 5 ft are critical.'],
+  ['petrified', 'Petrified', 'Turned to stone: incapacitated, resistance to all damage.'],
+  ['poisoned', 'Poisoned', 'Disadvantage on attack rolls and ability checks.'],
+  ['prone', 'Prone', 'Your attacks have Disadvantage; melee attacks against you have Advantage, ranged have Disadvantage.'],
+  ['restrained', 'Restrained', 'Speed 0; Disadvantage on attacks and Dex saves; attacks against you have Advantage.'],
+  ['stunned', 'Stunned', 'Incapacitated; fail Str and Dex saves; attacks against you have Advantage.'],
+  ['unconscious', 'Unconscious', 'Incapacitated and Prone; drop what you hold; hits within 5 ft are critical.']
+];
+const COND = Object.fromEntries(CONDITIONS.map(c => [c[0], c]));
+
+/* ---------------- State ---------------- */
+const DOC_PATH = 'characters/cletus';
+const LS_KEY = 'cletus-companion-v1';
+const CLIENT = Math.random().toString(36).slice(2, 10);
+const S = { c: null, tab: 'play', db: null, docRef: null, notes: [], notesReady: false, conn: 'loading', saving: false, dirty: false, pending: null, layer: null, noteQuery: '', noteTag: 'all', dl: null };
+try { const t = localStorage.getItem(LS_KEY + '-tab'); if (t) S.tab = t; } catch (e) {}
+
+const $ = sel => document.querySelector(sel);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[ch]));
+const sg = n => (n >= 0 ? '+' : '−') + Math.abs(n);
+const mod = s => Math.floor((s - 10) / 2);
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+/* ---------------- Derived numbers ---------------- */
+function hasInv(id) { return (S.c.invocations || []).some(i => i.id === id); }
+function invChoice(id) { return (S.c.invocations || []).filter(i => i.id === id).map(i => i.choice); }
+function originFeats() {
+  const list = (S.c.feats || []).map(f => f.id);
+  invChoice('lessonsFirstOnes').forEach(f => f && list.push(f));
+  return list;
+}
+function D() {
+  const c = S.c, L = c.level;
+  const m = Object.fromEntries(AB.map(a => [a, mod(c.abilities[a])]));
+  const pb = Math.ceil(L / 4) + 1;
+  const feats = originFeats();
+  const tough = feats.includes('tough');
+  const exh = c.exhaustion || 0;
+  const hpMax = (c.hpRolls || []).reduce((a, b) => a + b, 0) + L * m.con + (tough ? 2 * L : 0) + (c.boon && c.boon.id === 'fortitude' ? 40 : 0);
+  const allSkills = c.boon && c.boon.id === 'skill';
+  const skill = id => {
+    const sk = SKN[id]; const p = allSkills || (c.skillProf || []).includes(id); const e = (c.expertise || []).includes(id);
+    return { v: m[sk[2]] + (e ? 2 * pb : p ? pb : 0), p, e };
+  };
+  const save = a => { const p = (c.saveProf || []).includes(a); return { v: m[a] + (p ? pb : 0), p }; };
+  const beams = L >= 17 ? 4 : L >= 11 ? 3 : L >= 5 ? 2 : 1;
+  const cantripDice = L >= 17 ? 4 : L >= 11 ? 3 : L >= 5 ? 2 : 1;
+  const attacks = hasInv('devouringBlade') ? 3 : hasInv('thirstingBlade') ? 2 : 1;
+  return {
+    L, m, pb, hpMax, exh, skill, save, beams, cantripDice, attacks,
+    ac: (c.mageArmor ? 13 : 10) + m.dex,
+    init: m.dex + (feats.includes('alert') ? pb : 0),
+    speed: Math.max(0, 30 + (c.boon && c.boon.id === 'speed' ? 30 : 0) - 5 * exh),
+    dc: 8 + m.cha + pb, atk: m.cha + pb,
+    slots: SLOTS[L], slotLvl: SLOT_LVL[L],
+    steps: L >= 3 ? Math.max(1, m.cha) : 0,
+    passive: 10 + skill('perception').v,
+    feats
+  };
+}
+function alwaysPrepared(L) {
+  const out = ['healingWord'];
+  Object.keys(FEY_SPELLS).forEach(k => { if (L >= +k) out.push(...FEY_SPELLS[k]); });
+  if (L >= 9) out.push('contactOtherPlane');
+  return out;
+}
+
+/* ---------------- Persistence ---------------- */
+function setStatus(kind, text) {
+  const el = $('#status'); if (!el) return;
+  el.className = 'status ' + (kind || '');
+  el.querySelector('span').textContent = text;
+}
+function mirrorLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S.c)); } catch (e) {} }
+function readLocal() { try { const v = localStorage.getItem(LS_KEY); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+
+let saveTimer = null;
+function commit(opts) {
+  // Called after every state change.
+  S.c.updated = Date.now();
+  S.c.client = CLIENT;
+  mirrorLocal();
+  S.dirty = true;
+  render(opts && opts.keepLayer);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 700);
+}
+async function flush() {
+  if (!S.docRef || !S.dirty) return;
+  if (S.saving) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 400); return; }
+  S.saving = true; S.dirty = false;
+  setStatus('warn', 'Saving…');
+  try {
+    await S.docRef.set(clone(S.c));
+    setStatus('ok', 'Saved');
+  } catch (e) {
+    S.dirty = true;
+    if (e && e.code === 'unavailable') { setTimeout(flush, 1500 + Math.random() * 1000); setStatus('warn', 'Retrying save…'); }
+    else setStatus('warn', 'Not saved to cloud (kept on this device)');
+  } finally { S.saving = false; }
+}
+
+async function boot() {
+  render();
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
+  try { S.dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { S.dl = null; }
+  if (!db) {
+    const local = readLocal();
+    if (local) { S.c = upgrade(local); S.conn = 'local'; setStatus('warn', 'Saved on this device only'); }
+    else { S.conn = 'none'; setStatus('warn', 'Character data unavailable'); }
+    S.notesReady = true;
+    render();
+    return;
+  }
+  S.db = db;
+  S.docRef = db.doc(DOC_PATH);
+  let settled = false;
+  const timer = setTimeout(() => {
+    if (settled) return;
+    const local = readLocal();
+    if (!S.c && local) { S.c = upgrade(local); S.conn = 'local'; render(); }
+    setStatus('warn', S.c ? 'Offline: changes kept on this device' : 'Can\'t reach saved data yet');
+  }, 10000);
+  S.docRef.onSnapshot(snap => {
+    if (!snap.metadata.fromCache) { settled = true; clearTimeout(timer); }
+    if (!snap.exists) {
+      if (!snap.metadata.fromCache) {
+        const local = readLocal();
+        if (local && !S.c) { S.c = upgrade(local); S.conn = 'cloud'; S.dirty = true; flush(); }
+        else if (!S.c) { S.conn = 'missing'; setStatus('warn', 'No character saved yet'); }
+        render();
+      }
+      return;
+    }
+    const data = snap.data();
+    if (snap.metadata.hasPendingWrites) return;
+    if (data.client === CLIENT && S.c) { if (!snap.metadata.fromCache) setStatus('ok', 'Saved'); return; }
+    if (S.dirty && S.c) return; // local edits win until they are written
+    S.c = upgrade(clone(data)); S.conn = 'cloud';
+    mirrorLocal();
+    if (!snap.metadata.fromCache) setStatus('ok', 'Synced');
+    render(true);
+  }, err => {
+    settled = true; clearTimeout(timer);
+    const local = readLocal();
+    if (!S.c && local) S.c = upgrade(local);
+    S.conn = S.c ? 'local' : 'none';
+    setStatus('warn', 'Cloud save unavailable: using this device');
+    render();
+  });
+  const notesCol = db.collection(DOC_PATH + '/notes');
+  S.notesCol = notesCol;
+  notesCol.onSnapshot(qs => {
+    S.notes = qs.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (b.updated || 0) - (a.updated || 0));
+    S.notesReady = true;
+    if (S.tab === 'notes' && !S.layer) render();
+  }, () => { S.notesReady = true; S.notesError = true; if (S.tab === 'notes') render(); });
+}
+function upgrade(c) {
+  c.uses = Object.assign({ steps: 0, cunning: 0, freeHW: 0, beguile: 0, patron: 0, arc6: 0, arc7: 0, arc8: 0, arc9: 0 }, c.uses || {});
+  ['invocations', 'cantrips', 'prepared', 'feats', 'asi', 'saveProf', 'skillProf', 'expertise', 'languages', 'inventory', 'history', 'conditions', 'hpRolls'].forEach(k => { if (!Array.isArray(c[k])) c[k] = []; });
+  c.coins = Object.assign({ cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }, c.coins || {});
+  c.arcanum = c.arcanum || {};
+  c.exhaustion = c.exhaustion || 0;
+  return c;
+}
+
+/* ---------------- Rendering ---------------- */
+function render(keepLayer) {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === S.tab));
+  const v = $('#view');
+  if (!S.c) {
+    $('#subtitle').textContent = 'Warlock companion';
+    let msg = '<p>Loading Cletus…</p>';
+    if (S.conn === 'missing') msg = '<h3>No character saved yet</h3><p class="muted">Cletus\'s data hasn\'t been set up in this app. Ask Claude to load him in, or restore a backup file.</p><label class="btn">Restore backup<input type="file" id="importFile" accept="application/json,.json" hidden></label>';
+    if (S.conn === 'none') msg = '<h3>Character data unavailable</h3><p class="muted">Open this page in claude.ai while signed in to load Cletus, or restore a backup file.</p><label class="btn">Restore backup<input type="file" id="importFile" accept="application/json,.json" hidden></label>';
+    v.innerHTML = '<div class="card empty">' + msg + '</div>';
+    return;
+  }
+  const d = D();
+  $('#subtitle').textContent = 'Level ' + d.L + ' Archfey Warlock';
+  const html = { play: viewPlay, spells: viewSpells, bag: viewBag, notes: viewNotes, sheet: viewSheet }[S.tab](d);
+  const active = document.activeElement;
+  const activeId = active && active.id && v.contains(active) ? active.id : null;
+  const caret = activeId && active.selectionStart != null ? active.selectionStart : null;
+  v.innerHTML = html;
+  if (activeId) { const el = document.getElementById(activeId); if (el) { el.focus(); if (caret != null && el.setSelectionRange) try { el.setSelectionRange(caret, caret); } catch (e) {} } }
+  if (S.layer && keepLayer !== false) renderLayer();
+}
+
+function pips(n, used, act, extra) {
+  let h = '';
+  for (let i = 0; i < n; i++) {
+    const isUsed = i < used;
+    h += `<button type="button" class="pip ${extra || ''} ${isUsed ? 'used' : 'full'}" data-act="${act}" data-i="${i}" aria-label="${isUsed ? 'Used' : 'Available'} ${i + 1} of ${n}"></button>`;
+  }
+  return `<div class="pips">${h}</div>`;
+}
+
+function viewPlay(d) {
+  const c = S.c;
+  const hpPct = Math.max(0, Math.min(100, Math.round(c.hp / d.hpMax * 100)));
+  const conc = c.conc ? SP[c.conc] : null;
+  const down = c.hp <= 0;
+  let h = '';
+  if (down) {
+    h += `<div class="banner down"><div><b>Down at 0 HP.</b> <span class="small">Roll a death save at the start of each turn.</span></div><button class="btn sm" data-act="roll" data-k="death">Roll</button></div>`;
+  }
+  h += `<div class="vit">
+    <div class="tile hp-tile"><span class="lbl">Hit Points</span><span class="big">${c.hp}<span class="sub"> / ${d.hpMax}</span></span>
+      <div class="hp-bar"><b class="${hpPct <= 33 ? 'low' : ''}" style="width:${hpPct}%"></b></div>
+      <span class="sub">${c.temp ? 'Temp HP ' + c.temp + (c.agathys && c.temp > 0 ? ' · Agathys ' + c.agathys + ' cold' : '') : 'No temp HP'}</span></div>
+    <div class="tile"><span class="lbl">AC</span><span class="big">${d.ac}</span><span class="sub">${c.mageArmor ? 'Mage Armor' : 'No armor'}</span></div>
+    <div class="tile"><span class="lbl">Speed</span><span class="big">${d.speed}</span><span class="sub">Init ${sg(d.init)}</span></div>
+  </div>
+  <div class="hp-actions">
+    <button class="btn hot" data-act="hp" data-mode="dmg">Damage</button>
+    <button class="btn pri" data-act="hp" data-mode="heal">Heal</button>
+    <button class="btn" data-act="hp" data-mode="temp">Temp HP</button>
+  </div>`;
+  if (conc) h += `<div class="banner"><div><span class="lbl">Concentrating</span><br><b>${esc(conc.n)}</b> <span class="small muted">Taking damage: Con save, DC 10 or half the damage.</span></div><button class="btn sm" data-act="endConc">End</button></div>`;
+  if (!c.mageArmor) h += `<div class="banner"><div class="small">Mage Armor is down. Armor of Shadows recasts it for free.</div><button class="btn sm" data-act="mageArmor">Cast</button></div>`;
+
+  const atkRows = [
+    ['stakeAtk', 'Heartwood Stake', `${sg(d.atk)} to hit · 1d8+${d.m.cha} (1d10 two-handed)` + (d.attacks > 1 ? ` · ${d.attacks} attacks` : ''), 'stakeDmg'],
+    ['sparkAtk', 'Backdraft Spark', `${sg(d.atk)} to hit · ${d.beams} beam${d.beams > 1 ? 's' : ''} · 1d10${invChoice('agonizingBlast').includes('eldritchBlast') ? '+' + d.m.cha : ''} Force`, 'sparkDmg'],
+    ['vm', 'Vicious Mockery', `DC ${d.dc} Wis · ${d.cantripDice}d6 Psychic`, 'vmDmg']
+  ];
+  h += `<div class="card"><h2>Attacks</h2>${atkRows.map(r => `<div class="atk"><div class="nm">${r[1]}</div><div class="meta">${r[2]}</div><div class="acts">${r[0] === 'vm' ? '' : `<button class="btn sm" data-act="roll" data-k="${r[0]}">Hit</button>`}<button class="btn sm pri" data-act="roll" data-k="${r[3]}">Dmg</button></div></div>`).join('')}</div>`;
+
+  // Resources
+  const rows = [];
+  rows.push(['Pact slots', `Level ${d.slotLvl} · back on a Short Rest`, pips(d.slots, c.slotsUsed, 'slot')]);
+  if (d.steps) rows.push(['Steps of the Fey', 'Free Misty Step · Long Rest', pips(d.steps, c.uses.steps, 'use', '') .replace(/data-act="use"/g, 'data-act="use" data-u="steps"')]);
+  if (d.L >= 2) rows.push(['Magical Cunning', '1-minute rite: regain ' + Math.ceil(d.slots / 2) + ' slot' + (Math.ceil(d.slots / 2) > 1 ? 's' : '') + ' · Long Rest', `<button class="btn sm" data-act="cunning" ${c.uses.cunning ? 'disabled' : ''}>${c.uses.cunning ? 'Used' : 'Use'}</button>`]);
+  rows.push(['Free Healing Word', 'Magic Initiate · Long Rest', pips(1, c.uses.freeHW, 'use').replace(/data-act="use"/g, 'data-act="use" data-u="freeHW"')]);
+  if (d.L >= 10) rows.push(['Beguiling Defenses', 'Reaction: halve a hit, psychic back · Long Rest or a Pact slot', pips(1, c.uses.beguile, 'use').replace(/data-act="use"/g, 'data-act="use" data-u="beguile"')]);
+  if (d.L >= 9) rows.push(['Contact Patron', 'Free Contact Other Plane · Long Rest', pips(1, c.uses.patron, 'use').replace(/data-act="use"/g, 'data-act="use" data-u="patron"')]);
+  Object.keys(ARCANUM).forEach(k => { const lvl = ARCANUM[k]; const sid = c.arcanum[lvl]; if (sid && SP[sid]) rows.push([`Arcanum: ${SP[sid].n}`, `Level ${lvl} · Long Rest`, pips(1, c.uses['arc' + lvl], 'use').replace(/data-act="use"/g, `data-act="use" data-u="arc${lvl}"`)]); });
+  rows.push(['Heroic Inspiration', 'Reroll any die · back on a Long Rest', `<button class="pip sq ${c.heroic ? 'full' : 'used'}" data-act="heroic" aria-label="Heroic Inspiration ${c.heroic ? 'available' : 'used'}"></button>`]);
+  rows.push(['Healer\'s Kit', 'Battle Medic uses', `<div class="stepper"><button class="btn" data-act="kit" data-d="-1" aria-label="Use one">−</button><b>${c.healerKit}</b><button class="btn" data-act="kit" data-d="1" aria-label="Add one">+</button></div>`]);
+  rows.push(['Hit Dice', `d8 · ${d.L - c.hdSpent} of ${d.L} left`, pips(d.L, c.hdSpent, 'hd', 'sq')]);
+  h += `<div class="card"><h2>Resources</h2><div class="trk">${rows.map(r => `<div class="trk-row"><div class="trk-name"><b>${r[0]}</b><span class="small muted">${r[1]}</span></div>${r[2]}</div>`).join('')}</div></div>`;
+
+  // Death saves
+  if (down || c.deathS || c.deathF) {
+    h += `<div class="card"><h2>Death Saves</h2><div class="trk"><div class="trk-row"><b>Successes</b>${pipsDS(c.deathS, 'dsS', 'dsg')}</div><div class="trk-row"><b>Failures</b>${pipsDS(c.deathF, 'dsF', 'dsx')}</div></div></div>`;
+  }
+
+  // Conditions
+  const active = c.conditions || [];
+  h += `<div class="card"><h2>Conditions</h2><div class="chips">${CONDITIONS.map(x => `<button class="chip ${active.includes(x[0]) ? 'on' : ''}" data-act="cond" data-id="${x[0]}" aria-pressed="${active.includes(x[0])}">${x[1]}</button>`).join('')}</div>
+    <div class="spread" style="margin-top:10px"><div><b>Exhaustion</b> <span class="small muted">${c.exhaustion ? `−${2 * c.exhaustion} to d20 tests, −${5 * c.exhaustion} ft speed` : 'None'}</span></div><div class="stepper"><button class="btn" data-act="exh" data-d="-1" aria-label="Less exhaustion">−</button><b>${c.exhaustion}</b><button class="btn" data-act="exh" data-d="1" aria-label="More exhaustion">+</button></div></div>
+    ${active.length ? `<div class="cond-notes" style="margin-top:10px">${active.map(id => `<p><b>${COND[id][1]}:</b> ${COND[id][2]}</p>`).join('')}${active.includes('charmed') && d.L >= 10 ? '<p class="muted small">Beguiling Defenses makes Cletus immune to Charmed.</p>' : ''}</div>` : ''}
+  </div>`;
+
+  h += `<div class="grid2"><button class="btn full" data-act="shortRest">Short Rest</button><button class="btn full pri" data-act="longRest">Long Rest</button></div>`;
+  return `<div class="stack">${h}</div>`;
+}
+function pipsDS(n, act, cls) {
+  let h = '';
+  for (let i = 0; i < 3; i++) h += `<button class="pip ${cls} ${i < n ? 'full' : ''}" data-act="${act}" data-i="${i}" aria-label="${i + 1}"></button>`;
+  return `<div class="pips">${h}</div>`;
+}
+
+function spellCard(id, d, how) {
+  const s = SP[id]; if (!s) return '';
+  const tags = [];
+  if (s.c) tags.push('<span class="tag c">Conc.</span>');
+  if (how) tags.push(`<span class="tag">${how}</span>`);
+  const lvlTxt = s.l === 0 ? 'Cantrip' : 'Level ' + s.l;
+  return `<div class="spell"><div class="hd"><h3>${esc(s.n)} ${tags.join(' ')}</h3><button class="btn sm ${s.l === 0 ? '' : 'pri'}" data-act="cast" data-id="${id}">${s.l === 0 ? 'Use' : 'Cast'}</button></div>
+    <div class="meta">${lvlTxt} · ${s.t} · ${s.r}</div><p class="desc">${esc(s.s)}</p></div>`;
+}
+function viewSpells(d) {
+  const c = S.c;
+  let h = `<div class="grid3"><div class="tile"><span class="lbl">Save DC</span><span class="big">${d.dc}</span></div><div class="tile"><span class="lbl">Spell Attack</span><span class="big">${sg(d.atk)}</span></div><div class="tile"><span class="lbl">Slots</span><span class="big">${d.slots - c.slotsUsed}/${d.slots}</span><span class="sub">Level ${d.slotLvl}</span></div></div>`;
+  h += `<div class="card"><h2>Cantrips</h2>${c.cantrips.map(id => spellCard(id, d)).join('')}${spellCard('viciousMockery', d, 'Magic Initiate')}${spellCard('light', d, 'Magic Initiate')}</div>`;
+  h += `<div class="card"><h2>Prepared <span class="muted small">${c.prepared.length} of ${PREPARED[d.L]}</span></h2>${c.prepared.slice().sort((a, b) => SP[a].l - SP[b].l).map(id => spellCard(id, d)).join('')}</div>`;
+  const always = alwaysPrepared(d.L);
+  h += `<div class="card"><h2>Always prepared</h2>${spellCard('mageArmor', d, 'Armor of Shadows')}${always.map(id => spellCard(id, d, id === 'healingWord' ? 'Magic Initiate' : id === 'contactOtherPlane' ? 'Contact Patron' : 'Archfey')).join('')}</div>`;
+  const arc = Object.keys(c.arcanum || {});
+  if (arc.length) h += `<div class="card"><h2>Mystic Arcanum</h2>${arc.map(l => spellCard(c.arcanum[l], d, 'Arcanum')).join('')}</div>`;
+  return `<div class="stack">${h}</div>`;
+}
+
+function viewBag() {
+  const c = S.c;
+  let h = `<div class="card"><h2>Coins</h2><div class="coins">${['cp', 'sp', 'ep', 'gp', 'pp'].map(k => `<label class="coin"><span class="lbl">${k.toUpperCase()}</span><input id="coin-${k}" inputmode="numeric" data-coin="${k}" value="${c.coins[k]}" aria-label="${k.toUpperCase()}"></label>`).join('')}</div></div>`;
+  h += `<div class="card"><h2>Items <button class="btn sm pri" data-act="item" data-id="">Add item</button></h2>${c.inventory.length ? c.inventory.map(it => `<div class="item"><button class="nm" style="border:0;background:none;text-align:left;padding:0" data-act="item" data-id="${it.id}">${esc(it.name)}</button><div class="note">${esc(it.note || '')}</div><div class="stepper"><button class="btn" data-act="qty" data-id="${it.id}" data-d="-1" aria-label="One less ${esc(it.name)}">−</button><b>${it.qty}</b><button class="btn" data-act="qty" data-id="${it.id}" data-d="1" aria-label="One more ${esc(it.name)}">+</button></div></div>`).join('') : '<p class="muted">The bag is empty.</p>'}</div>`;
+  return `<div class="stack">${h}</div>`;
+}
+
+const NOTE_TAGS = ['NPC', 'Place', 'Clue', 'Quest', 'Loot', 'Session'];
+function viewNotes() {
+  const q = S.noteQuery.trim().toLowerCase();
+  const list = S.notes.filter(n => (S.noteTag === 'all' || n.tag === S.noteTag) && (!q || (n.title + ' ' + n.body).toLowerCase().includes(q)));
+  let h = `<div class="row"><input class="in" id="noteSearch" placeholder="Search notes" value="${esc(S.noteQuery)}" style="flex:1;min-width:0" aria-label="Search notes"><button class="btn pri" data-act="note" data-id="">New note</button></div>`;
+  h += `<div class="chips">${['all'].concat(NOTE_TAGS).map(t => `<button class="chip ${S.noteTag === t ? 'on' : ''}" data-act="noteTag" data-t="${t}">${t === 'all' ? 'All' : t}</button>`).join('')}</div>`;
+  if (!S.db && S.conn !== 'cloud') h += '<div class="card"><p class="muted">Notes are stored in the cloud and need claude.ai to load.</p></div>';
+  else if (!S.notesReady) h += '<div class="card"><p class="muted">Loading notes…</p></div>';
+  else if (S.notesError) h += '<div class="card"><p class="muted">Notes can\'t be reached right now.</p></div>';
+  else if (!S.notes.length) h += '<div class="card empty"><h3>No notes yet</h3><p class="muted">Jot down NPCs, places and clues from Barovia. Tap "New note" to start.</p></div>';
+  else if (!list.length) h += '<div class="card"><p class="muted">No notes match.</p></div>';
+  else h += list.map(n => `<button class="note-card" data-act="note" data-id="${n.id}"><div class="spread"><b>${esc(n.title || 'Untitled')}</b><span class="tag">${esc(n.tag || 'Note')}</span></div><div class="body">${esc(n.body || '')}</div><span class="small muted">${new Date(n.updated || n.created || Date.now()).toLocaleDateString()}</span></button>`).join('');
+  return `<div class="stack">${h}</div>`;
+}
+
+function featureList(d) {
+  const c = S.c, L = d.L, out = [];
+  out.push(['Eldritch Invocations', c.invocations.map(i => INV[i.id] ? INV[i.id].n + (i.choice ? ` (${i.id === 'lessonsFirstOnes' ? (ORIGIN_FEATS[i.choice] || [i.choice])[0] : (SP[i.choice] || { n: i.choice }).n})` : '') : i.id).join(', ')]);
+  c.invocations.forEach(i => { const v = INV[i.id]; if (v) out.push([v.n, v.s, 'Invocation']); });
+  out.push(['Pact Magic', `${d.slots} slot${d.slots > 1 ? 's' : ''} of level ${d.slotLvl}; regain on a Short or Long Rest.`]);
+  if (L >= 2) out.push(['Magical Cunning', L >= 20 ? 'Eldritch Master: the rite regains all expended Pact slots.' : 'A 1-minute rite regains half your expended Pact slots (round up), once per Long Rest.']);
+  if (L >= 3) out.push(['Steps of the Fey', `Cast Misty Step free ${d.steps} times per Long Rest. Add Refreshing Step (1d10 temp HP to you or an ally within 10 ft) or Taunting Step (creatures within 5 ft of where you left: Wis save or Disadvantage on attacks against anyone but you)${L >= 6 ? ', Disappearing Step (Invisible until your next turn) or Dreadful Step (creatures within 5 ft of where you left or arrive: Wis save or 2d10 Psychic)' : ''}.`, 'Archfey']);
+  if (L >= 6) out.push(['Misty Escape', 'Reaction when you take damage: cast Misty Step.', 'Archfey']);
+  if (L >= 9) out.push(['Contact Patron', 'Contact Other Plane is always prepared; once per Long Rest cast it free and succeed on its save.']);
+  if (L >= 10) out.push(['Beguiling Defenses', 'Immune to Charmed. Reaction when hit: halve the damage, and the attacker makes a Wis save or takes Psychic damage equal to what you took. Once per Long Rest, or spend a Pact slot.', 'Archfey']);
+  if (L >= 11) out.push(['Mystic Arcanum', 'One spell each of levels 6' + (L >= 13 ? ', 7' : '') + (L >= 15 ? ', 8' : '') + (L >= 17 ? ', 9' : '') + ', each cast once per Long Rest without a slot.']);
+  if (L >= 14) out.push(['Bewitching Magic', 'After casting an Enchantment or Illusion spell with an action and a slot, cast Misty Step free as part of the same action.', 'Archfey']);
+  if (L >= 20) out.push(['Eldritch Master', 'Magical Cunning regains all expended Pact slots.']);
+  return out.slice(1);
+}
+function viewSheet(d) {
+  const c = S.c;
+  let h = `<div class="card"><h2>Abilities</h2><div class="ab-grid">${AB.map(a => `<button class="ab" data-act="roll" data-k="check-${a}"><div class="lbl">${ABN[a].slice(0, 3)}</div><div class="m">${sg(d.m[a])}</div><div class="small muted">${c.abilities[a]}</div></button>`).join('')}</div>
+    <div class="grid3" style="margin-top:8px"><div class="tile"><span class="lbl">Prof.</span><span class="big">${sg(d.pb)}</span></div><div class="tile"><span class="lbl">Passive Perc.</span><span class="big">${d.passive}</span></div><div class="tile"><span class="lbl">HP max</span><span class="big">${d.hpMax}</span></div></div></div>`;
+  h += `<div class="cols"><div class="card"><h2>Saving Throws</h2><div class="lst">${AB.map(a => { const s = d.save(a); return `<button data-act="roll" data-k="save-${a}"><i class="dot ${s.p ? 'p' : ''}"></i><span>${ABN[a]}</span><b class="num">${sg(s.v)}</b></button>`; }).join('')}</div></div>
+    <div class="card"><h2>Skills</h2><div class="lst">${SKILLS.map(sk => { const s = d.skill(sk[0]); return `<button data-act="roll" data-k="skill-${sk[0]}"><i class="dot ${s.e ? 'e' : s.p ? 'p' : ''}"></i><span>${sk[1]} <span class="small muted">${sk[2].toUpperCase()}</span></span><b class="num">${sg(s.v)}</b></button>`; }).join('')}</div></div></div>`;
+  h += `<div class="card"><h2>Level</h2><div class="spread"><div><b>Level ${d.L}</b> <span class="muted small">Warlock (Archfey)</span></div><div class="row">${c.history.length ? '<button class="btn sm" data-act="undoLevel">Undo last level-up</button>' : ''}<button class="btn pri" data-act="levelUp" ${d.L >= 20 ? 'disabled' : ''}>${d.L >= 20 ? 'Max level' : 'Level up to ' + (d.L + 1)}</button></div></div></div>`;
+  h += `<div class="card"><h2>Features</h2>${featureList(d).map(f => `<div class="feat"><h3>${esc(f[0])} ${f[2] ? `<span class="tag">${f[2]}</span>` : ''}</h3><p>${esc(f[1])}</p></div>`).join('')}</div>`;
+  const featRows = c.feats.map(f => {
+    const o = ORIGIN_FEATS[f.id], g = GF[f.id];
+    const name = o ? o[0] : g ? g.n : f.id === 'asi' ? 'Ability Score Improvement' : f.id;
+    const desc = o ? o[1] : g ? g.s : '';
+    return `<div class="feat"><h3>${esc(name)}${f.choice ? ' (' + esc(f.choice) + ')' : ''} <span class="tag">${esc(f.src || '')}</span></h3>${desc ? `<p>${esc(desc)}</p>` : ''}${f.note ? `<p class="small muted">${esc(f.note)}</p>` : ''}</div>`;
+  }).join('');
+  const boon = c.boon ? `<div class="feat"><h3>${esc(BOONS[c.boon.id][0])} <span class="tag">Epic Boon</span></h3><p>${esc(BOONS[c.boon.id][1])}</p></div>` : '';
+  h += `<div class="card"><h2>Feats &amp; Traits</h2>${featRows}${boon}
+    <div class="feat"><h3>Human <span class="tag">Species</span></h3><p>Resourceful: Heroic Inspiration on every Long Rest. Skillful: Perception. Versatile: Magic Initiate.</p></div></div>`;
+  h += `<div class="card"><h2>Proficiencies</h2><div class="stack small"><p><b>Armor:</b> Light armor</p><p><b>Weapons:</b> Simple weapons, plus his pact weapon (Trident stats)</p><p><b>Tools:</b> Herbalism Kit</p><p><b>Languages:</b> ${esc(c.languages.join(', '))}</p></div></div>`;
+  h += `<div class="card"><h2>Cletus</h2><div class="prose"><p>Ex-farmer and logger from the Big Thicket of East Texas. Ginger man-bun, a belt-length beard tied in knots, black denim overalls, Red Wing boots, sleeves rolled over thick forearms. A pipe and a long stake, both carved from the heartwood of the oak he felled.</p><p>His patron, the Old Lady of the Thicket: <i>"For every tree you felled, you'll fell a thing that ought not be standing."</i></p></div></div>`;
+  h += `<div class="card"><h2>Backup</h2><p class="small muted">Save a copy of Cletus to a file, or restore one.</p><div class="row" style="margin-top:8px">${S.dl ? '<button class="btn" data-act="export">Save backup file</button>' : ''}<label class="btn">Restore backup<input type="file" id="importFile" accept="application/json,.json" hidden></label></div></div>`;
+  return `<div class="stack">${h}</div>`;
+}
+
+/* ---------------- Layers (bottom sheets) ---------------- */
+function openLayer(layer) { S.layer = layer; renderLayer(); }
+function closeLayer() { S.layer = null; $('#layer').innerHTML = ''; }
+function renderLayer() {
+  const L = S.layer; if (!L) { $('#layer').innerHTML = ''; return; }
+  const fn = { hp: layerHP, roll: layerRoll, cast: layerCast, item: layerItem, note: layerNote, short: layerShort, long: layerLong, level: layerLevel, undo: layerUndo, msg: layerMsg }[L.type];
+  const body = fn(L);
+  const prevScroll = $('#layer .sheet') ? $('#layer .sheet').scrollTop : 0;
+  const active = document.activeElement;
+  const activeId = active && active.id && $('#layer').contains(active) ? active.id : null;
+  const caret = activeId && active.selectionStart != null ? active.selectionStart : null;
+  $('#layer').innerHTML = `<div class="ov" data-act="ovClose"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(body.title)}"><div class="sh-hd"><h3>${body.title}</h3><button class="btn sm ghost" data-act="close">Close</button></div>${body.html}</div></div>`;
+  const sh = $('#layer .sheet'); if (sh) sh.scrollTop = prevScroll;
+  if (activeId) { const el = document.getElementById(activeId); if (el) { el.focus(); if (caret != null && el.setSelectionRange) try { el.setSelectionRange(caret, caret); } catch (e) {} } }
+  else if (body.focus) { const el = document.getElementById(body.focus); if (el) el.focus(); }
+}
+
+function layerMsg(L) { return { title: L.title, html: `<p>${L.text}</p><button class="btn pri full" data-act="close">OK</button>` }; }
+
+function layerHP(L) {
+  const titles = { dmg: 'Take damage', heal: 'Heal', temp: 'Temporary HP' };
+  const c = S.c;
+  let extra = '';
+  if (L.mode === 'dmg') extra = `<p class="small muted">Temp HP (${c.temp}) absorbs damage first.${c.conc ? ' You\'re concentrating on ' + esc(SP[c.conc].n) + ': a Con save follows.' : ''}</p>`;
+  if (L.mode === 'temp') extra = '<p class="small muted">Temp HP don\'t stack: you keep whichever is higher.</p>';
+  return {
+    title: titles[L.mode], focus: 'hpAmt',
+    html: `<label class="f">Amount<input class="in die" id="hpAmt" inputmode="numeric" value="${esc(L.v || '')}" style="width:100%"></label>${extra}
+      <button class="btn ${L.mode === 'dmg' ? 'hot' : 'pri'} full" data-act="hpApply">${L.mode === 'dmg' ? 'Apply damage' : L.mode === 'heal' ? 'Apply healing' : 'Set temp HP'}</button>`
+  };
+}
+
+/* Roll helper ------------------------------------------------- */
+function rollCatalog(d) {
+  const c = S.c, list = [];
+  const pen = d.exh ? [{ t: 'Exhaustion', v: -2 * d.exh }] : [];
+  const d20 = (k, g, n, mods, extra) => list.push(Object.assign({ k, g, n, kind: 'd20', mods: mods.concat(pen) }, extra || {}));
+  const dmg = (k, g, n, build) => list.push({ k, g, n, kind: 'dmg', build });
+  d20('stakeAtk', 'Attacks', 'Heartwood Stake: attack', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }], { note: d.attacks > 1 ? `Attack action: ${d.attacks} attacks.` : '' });
+  d20('sparkAtk', 'Attacks', 'Backdraft Spark: attack (per beam)', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }], { note: d.beams > 1 ? `${d.beams} beams: roll each separately.` : '' });
+  d20('smallStake', 'Attacks', 'Wooden stake (dagger): attack', [{ t: 'DEX', v: d.m.dex }, { t: 'Prof.', v: d.pb }]);
+  d20('spellAtk', 'Attacks', 'Other spell attack', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }]);
+  dmg('stakeDmg', 'Damage', 'Heartwood Stake: damage', o => {
+    const g = [{ id: 'w', n: o.twoHand ? '1d10 stake' : '1d8 stake', die: o.twoHand ? 10 : 8, count: 1, type: 'Piercing / Radiant / Psychic' }];
+    if (o.hex) g.push({ id: 'hex', n: '1d6 Hex', die: 6, count: 1, type: 'Necrotic' });
+    if (o.smite) g.push({ id: 'smite', n: `${1 + d.slotLvl}d8 Eldritch Smite`, die: 8, count: 1 + d.slotLvl, type: 'Force' });
+    if (o.life) g.push({ id: 'life', n: '1d6 Lifedrinker', die: 6, count: 1, type: 'Necrotic / Psychic / Radiant' });
+    return { groups: g, flat: [{ t: 'CHA', v: d.m.cha }] };
+  });
+  dmg('sparkDmg', 'Damage', 'Backdraft Spark: damage (per beam)', o => {
+    const g = [{ id: 'eb', n: '1d10 spark', die: 10, count: 1, type: 'Force' }];
+    if (o.hex) g.push({ id: 'hex', n: '1d6 Hex', die: 6, count: 1, type: 'Necrotic' });
+    return { groups: g, flat: invChoice('agonizingBlast').includes('eldritchBlast') ? [{ t: 'Agonizing (CHA)', v: d.m.cha }] : [] };
+  });
+  dmg('vmDmg', 'Damage', 'Vicious Mockery: damage', () => ({ groups: [{ id: 'vm', n: `${d.cantripDice}d6`, die: 6, count: d.cantripDice, type: 'Psychic' }], flat: [], note: 'Target also has Disadvantage on its next attack roll.' }));
+  const cd = { chillTouch: [10, 'Necrotic'], mindSliver: [6, 'Psychic'], poisonSpray: [12, 'Poison'], thunderclap: [6, 'Thunder'], tollTheDead: [12, 'Necrotic (d8 if unhurt)'] };
+  c.cantrips.forEach(id => { if (cd[id]) dmg(id + 'Dmg', 'Damage', SP[id].n + ': damage', () => ({ groups: [{ id, n: `${d.cantripDice}d${cd[id][0]}`, die: cd[id][0], count: d.cantripDice, type: cd[id][1] }], flat: [] })); });
+  dmg('smallStakeDmg', 'Damage', 'Wooden stake: damage', () => ({ groups: [{ id: 'd', n: '1d4 stake', die: 4, count: 1, type: 'Piercing' }], flat: [{ t: 'DEX', v: d.m.dex }] }));
+  dmg('hexDmg', 'Damage', 'Hex only', () => ({ groups: [{ id: 'hex', n: '1d6 Hex', die: 6, count: 1, type: 'Necrotic' }], flat: [] }));
+  dmg('holyWater', 'Damage', 'Holy Water (DC ' + (8 + d.m.dex + d.pb) + ' Dex)', () => ({ groups: [{ id: 'hw', n: '2d8', die: 8, count: 2, type: 'Radiant (Fiends and Undead only)' }], flat: [] }));
+  dmg('otherDmg', 'Damage', 'Other damage (enter dice total)', () => ({ groups: [{ id: 'x', n: 'Dice total', die: 0, count: 1, type: '' }], flat: [] }));
+  dmg('hwHeal', 'Healing', 'Healing Word', o => ({ heal: true, groups: [{ id: 'hw', n: `${2 * (o.slot || 1)}d4`, die: 4, count: 2 * (o.slot || 1), type: 'Healing' }], flat: [{ t: 'CHA', v: d.m.cha }] }));
+  dmg('medic', 'Healing', 'Battle Medic (Healer feat)', () => ({ heal: true, groups: [{ id: 'hd', n: 'Patient\'s Hit Die', die: 0, count: 1, type: 'Healing' }], flat: [{ t: 'Prof.', v: d.pb }], note: 'Uses one Healer\'s Kit charge. The patient spends one of their Hit Dice.' }));
+  dmg('refresh', 'Healing', 'Refreshing Step (temp HP)', () => ({ temp: true, groups: [{ id: 'r', n: '1d10', die: 10, count: 1, type: 'Temp HP' }], flat: [] }));
+  if (hasInv('lifedrinker')) dmg('lifeHeal', 'Healing', 'Lifedrinker: spend a Hit Die', () => ({ heal: true, selfHD: true, groups: [{ id: 'l', n: '1d8 Hit Die', die: 8, count: 1, type: 'Healing' }], flat: [{ t: 'CON', v: d.m.con }] }));
+  d20('init', 'Common', 'Initiative', [{ t: 'Initiative', v: d.init }]);
+  d20('death', 'Common', 'Death saving throw', [], { death: true });
+  d20('conc', 'Common', 'Concentration (Con save)', [{ t: 'CON save', v: d.save('con').v }], { concSave: true, note: hasInv('eldritchMind') ? 'Eldritch Mind: roll with Advantage.' : '' });
+  AB.forEach(a => d20('save-' + a, 'Saving throws', ABN[a] + ' save', [{ t: ABN[a].slice(0, 3).toUpperCase(), v: d.m[a] }].concat(d.save(a).p ? [{ t: 'Prof.', v: d.pb }] : [])));
+  AB.forEach(a => d20('check-' + a, 'Ability checks', ABN[a] + ' check', [{ t: ABN[a].slice(0, 3).toUpperCase(), v: d.m[a] }]));
+  SKILLS.forEach(sk => { const s = d.skill(sk[0]); d20('skill-' + sk[0], 'Skills', sk[1], [{ t: sk[2].toUpperCase(), v: d.m[sk[2]] }].concat(s.e ? [{ t: 'Expertise', v: 2 * d.pb }] : s.p ? [{ t: 'Prof.', v: d.pb }] : [])); });
+  return list;
+}
+function condReminders(entry) {
+  const c = S.c, a = c.conditions || [], out = [];
+  const isAtk = entry.g === 'Attacks', isCheck = entry.g === 'Ability checks' || entry.g === 'Skills' || entry.k === 'init';
+  if (isAtk && a.includes('poisoned')) out.push('Poisoned: Disadvantage');
+  if ((isAtk || isCheck) && a.includes('frightened')) out.push('Frightened: Disadvantage while the source is in sight');
+  if (isCheck && a.includes('poisoned')) out.push('Poisoned: Disadvantage');
+  if (isAtk && a.includes('prone')) out.push('Prone: Disadvantage');
+  if (isAtk && a.includes('blinded')) out.push('Blinded: Disadvantage');
+  if (isAtk && a.includes('restrained')) out.push('Restrained: Disadvantage');
+  if (entry.k === 'save-dex' && a.includes('restrained')) out.push('Restrained: Disadvantage on Dex saves');
+  if (isAtk && a.includes('invisible')) out.push('Invisible: Advantage');
+  if ((entry.k === 'save-str' || entry.k === 'save-dex') && (a.includes('paralyzed') || a.includes('stunned') || a.includes('unconscious'))) out.push('Automatically fail this save');
+  return out;
+}
+function layerRoll(L) {
+  const d = D();
+  const cat = rollCatalog(d);
+  const entry = cat.find(x => x.k === L.k) || cat[0];
+  L.k = entry.k;
+  const groups = {};
+  cat.forEach(x => { (groups[x.g] = groups[x.g] || []).push(x); });
+  let h = `<label class="f">What are you rolling?<select class="in" id="rollKind" data-act="rollKind">${Object.keys(groups).map(g => `<optgroup label="${g}">${groups[g].map(x => `<option value="${x.k}" ${x.k === entry.k ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+  if (entry.kind === 'd20') {
+    const mode = L.mode || 'norm';
+    const rem = condReminders(entry);
+    h += `<div class="spread"><span class="lbl">Roll</span><div class="seg" role="group" aria-label="Advantage">${[['dis', 'Disadv.'], ['norm', 'Normal'], ['adv', 'Adv.']].map(m => `<button class="${mode === m[0] ? 'on' : ''}" data-act="rollMode" data-m="${m[0]}">${m[1]}</button>`).join('')}</div></div>`;
+    if (rem.length) h += `<p class="small" style="color:var(--ember)">${rem.map(esc).join(' · ')}</p>`;
+    if (entry.note) h += `<p class="small muted">${esc(entry.note)}</p>`;
+    if (entry.concSave) h += `<label class="f">Damage taken (sets the DC)<input class="in" id="concDmg" inputmode="numeric" value="${esc(L.concDmg || '')}"></label>`;
+    h += `<div class="row"><label class="f">d20<input class="in die" id="d1" inputmode="numeric" value="${esc(L.d1 || '')}"></label>${mode !== 'norm' ? `<label class="f">2nd d20<input class="in die" id="d2" inputmode="numeric" value="${esc(L.d2 || '')}"></label>` : ''}</div>`;
+    const a = parseInt(L.d1, 10), b = parseInt(L.d2, 10);
+    let die = null;
+    if (mode === 'norm' && a >= 1) die = a;
+    if (mode !== 'norm' && a >= 1 && b >= 1) die = mode === 'adv' ? Math.max(a, b) : Math.min(a, b);
+    const modSum = entry.mods.reduce((s, m) => s + m.v, 0);
+    h += `<p class="breakdown">${entry.death ? 'Death saves add nothing.' : 'Add: ' + (entry.mods.length ? entry.mods.map(m => `${m.t} ${sg(m.v)}`).join(', ') + ` = <b>${sg(modSum)}</b>` : 'nothing')}</p>`;
+    if (die != null && die >= 1 && die <= 20) {
+      const total = die + modSum;
+      let cls = '', note = '';
+      if (die === 20) { cls = 'crit'; note = entry.g === 'Attacks' ? 'Natural 20: critical hit! Double the damage dice.' : 'Natural 20!'; }
+      if (die === 1) { cls = 'fail'; note = entry.g === 'Attacks' ? 'Natural 1: automatic miss.' : 'Natural 1.'; }
+      if (entry.death) {
+        note = die === 20 ? 'Natural 20: you regain 1 HP!' : die === 1 ? 'Natural 1: two failures.' : total >= 10 ? 'Success.' : 'Failure.';
+        h += `<div class="result ${cls}"><span class="lbl">Result</span><span class="total">${die}</span><p>${note}</p></div><button class="btn pri full" data-act="deathApply" data-r="${die}">Mark it on the tracker</button>`;
+      } else {
+        let dcTxt = '';
+        if (entry.concSave) { const dmgN = parseInt(L.concDmg, 10) || 0; const dc = Math.min(30, Math.max(10, Math.floor(dmgN / 2))); dcTxt = `<p>DC ${dc}: <b>${total >= dc ? 'Concentration holds' : 'Concentration breaks'}</b></p>`; }
+        h += `<div class="result ${cls}"><span class="lbl">Total</span><span class="total">${total}</span><p class="breakdown">d20 ${die} ${entry.mods.map(m => `${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join(' ')}</p>${note ? `<p><b>${note}</b></p>` : ''}${dcTxt}</div>`;
+        if (entry.concSave && c_concBreaks(L, total)) h += `<button class="btn hot full" data-act="endConc">End concentration</button>`;
+      }
+    }
+  } else {
+    const o = L.opts || (L.opts = { hex: S.c.conc === 'hex', twoHand: true, slot: d.slotLvl });
+    const built = entry.build(o);
+    const toggles = [];
+    if (entry.k === 'stakeDmg') {
+      toggles.push(['twoHand', 'Two hands (d10)']);
+      toggles.push(['hex', 'Hex']);
+      if (hasInv('eldritchSmite')) toggles.push(['smite', 'Eldritch Smite']);
+      if (hasInv('lifedrinker')) toggles.push(['life', 'Lifedrinker']);
+    }
+    if (entry.k === 'sparkDmg') toggles.push(['hex', 'Hex']);
+    if (entry.g === 'Damage' && entry.k !== 'otherDmg' && entry.k !== 'holyWater') toggles.push(['crit', 'Critical hit']);
+    if (toggles.length) h += `<div class="chips">${toggles.map(t => `<button class="chip ${o[t[0]] ? 'on' : ''}" data-act="rollOpt" data-o="${t[0]}" aria-pressed="${!!o[t[0]]}">${t[1]}</button>`).join('')}</div>`;
+    if (entry.k === 'hwHeal') h += `<label class="f">Slot level<select class="in" id="hwSlot" data-act="hwSlot">${Array.from({ length: d.slotLvl }, (_, i) => i + 1).map(n => `<option value="${n}" ${o.slot === n ? 'selected' : ''}>${n}${n === 1 ? ' (free cast is level 1)' : ''}</option>`).join('')}</select></label>`;
+    if (built.note) h += `<p class="small muted">${esc(built.note)}</p>`;
+    const vals = L.vals || (L.vals = {});
+    h += '<div class="stack">';
+    built.groups.forEach(g => {
+      const count = o.crit && g.die ? g.count * 2 : g.count;
+      const label = g.die ? `${count}d${g.die} ${esc(g.n.replace(/^\d+d\d+\s*/, ''))}` : esc(g.n);
+      h += `<label class="f"><span>${label} <span class="small muted">${esc(g.type)}</span></span><input class="in die" id="dv-${g.id}" data-dv="${g.id}" inputmode="numeric" placeholder="sum" value="${esc(vals[g.id] || '')}"></label>`;
+    });
+    h += '</div>';
+    const flatSum = built.flat.reduce((s, m) => s + m.v, 0);
+    h += `<p class="breakdown">Add: ${built.flat.length ? built.flat.map(m => `${m.t} ${sg(m.v)}`).join(', ') : 'nothing'}${o.crit ? ' (only dice double on a crit)' : ''}</p>`;
+    const ready = built.groups.every(g => vals[g.id] !== undefined && vals[g.id] !== '' && !isNaN(parseInt(vals[g.id], 10)));
+    if (ready) {
+      const parts = built.groups.map(g => ({ n: g.n, v: parseInt(vals[g.id], 10), type: g.type }));
+      const total = parts.reduce((s, p) => s + p.v, 0) + flatSum;
+      h += `<div class="result"><span class="lbl">${built.heal ? 'Healing' : built.temp ? 'Temp HP' : 'Total damage'}</span><span class="total">${total}</span><p class="breakdown">${parts.map(p => `${p.v} ${esc(p.type || p.n)}`).join(' + ')}${built.flat.map(m => ` ${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join('')}</p></div>`;
+      if (built.heal && !built.selfHD && entry.k !== 'medic') h += `<button class="btn pri full" data-act="selfHeal" data-v="${total}">Heal Cletus by ${total}</button>`;
+      if (built.selfHD) h += `<button class="btn pri full" data-act="lifeHeal" data-v="${total}">Spend a Hit Die and heal ${total}</button>`;
+      if (built.temp) h += `<button class="btn pri full" data-act="selfTemp" data-v="${total}">Give Cletus ${total} temp HP</button>`;
+    }
+  }
+  return { title: 'Roll helper', html: h, focus: L.focus };
+}
+function c_concBreaks(L, total) { const dmgN = parseInt(L.concDmg, 10) || 0; const dc = Math.min(30, Math.max(10, Math.floor(dmgN / 2))); return S.c.conc && total < dc; }
+
+/* Casting ------------------------------------------------------ */
+function layerCast(L) {
+  const d = D(), c = S.c, s = SP[L.id];
+  let h = `<p class="small muted">${s.l === 0 ? 'Cantrip' : 'Level ' + s.l} · ${s.t} · ${s.r}${s.c ? ' · Concentration' : ''}</p><p>${esc(s.s)}</p>`;
+  const opts = [];
+  const slotsLeft = d.slots - c.slotsUsed;
+  const isArc = Object.keys(c.arcanum).find(l => c.arcanum[l] === L.id);
+  if (L.id === 'mageArmor') opts.push(['free', 'Armor of Shadows (at will)', true]);
+  else if (isArc) opts.push(['arc' + isArc, 'Mystic Arcanum (once per Long Rest)', !c.uses['arc' + isArc]]);
+  else if (s.l === 0) opts.push(['cantrip', 'Cantrip: no slot needed', true]);
+  else {
+    if (s.l <= d.slotLvl) opts.push(['slot', `Pact slot (cast at level ${d.slotLvl}) · ${slotsLeft} left`, slotsLeft > 0]);
+    if (L.id === 'mistyStep' && d.steps) opts.push(['steps', `Steps of the Fey · ${d.steps - c.uses.steps} left`, c.uses.steps < d.steps]);
+    if (L.id === 'healingWord') opts.push(['freeHW', 'Magic Initiate free cast (level 1)', !c.uses.freeHW]);
+    if (L.id === 'contactOtherPlane') opts.push(['patron', 'Contact Patron free cast', !c.uses.patron]);
+  }
+  if (s.c && c.conc && c.conc !== L.id) h += `<div class="banner"><div class="small">Casting this ends <b>${esc(SP[c.conc].n)}</b>.</div></div>`;
+  if (L.id === 'mistyStep' && d.L >= 3) h += `<div class="card small"><b>Steps of the Fey:</b> add Refreshing Step (1d10 temp HP) or Taunting Step (Wis save DC ${d.dc} or Disadvantage on attacks against anyone but you)${d.L >= 6 ? ', Disappearing Step or Dreadful Step (2d10 Psychic, Wis save)' : ''}.</div>`;
+  if (L.id === 'armorAgathys') h += `<p class="small">At level ${d.slotLvl}: ${5 * d.slotLvl} temp HP, ${5 * d.slotLvl} Cold to melee attackers.</p>`;
+  h += `<div class="stack">${opts.map(o => `<button class="btn ${o[2] ? 'pri' : ''} full" data-act="castDo" data-via="${o[0]}" ${o[2] ? '' : 'disabled'}>${o[1]}</button>`).join('')}</div>`;
+  if (!opts.some(o => o[2])) h += '<p class="small muted">Nothing left to cast it with. A Short Rest restores Pact slots.</p>';
+  return { title: s.n, html: h };
+}
+
+/* Inventory and notes editors ----------------------------------- */
+function layerItem(L) {
+  const it = L.id ? S.c.inventory.find(i => i.id === L.id) : null;
+  const f = L.form || (L.form = { name: it ? it.name : '', qty: it ? String(it.qty) : '1', note: it ? it.note || '' : '' });
+  return {
+    title: it ? 'Edit item' : 'Add item', focus: 'itName',
+    html: `<label class="f">Name<input class="in" id="itName" data-f="name" value="${esc(f.name)}"></label>
+      <label class="f">Quantity<input class="in" id="itQty" data-f="qty" inputmode="numeric" value="${esc(f.qty)}"></label>
+      <label class="f">Note<input class="in" id="itNote" data-f="note" value="${esc(f.note)}"></label>
+      <button class="btn pri full" data-act="itemSave" ${f.name.trim() ? '' : 'disabled'}>Save</button>
+      ${it ? `<button class="btn danger full" data-act="itemDel">${L.confirm ? 'Tap again to remove' : 'Remove item'}</button>` : ''}`
+  };
+}
+function layerNote(L) {
+  const n = L.id ? S.notes.find(x => x.id === L.id) : null;
+  const f = L.form || (L.form = { title: n ? n.title || '' : '', tag: n ? n.tag || 'NPC' : 'NPC', body: n ? n.body || '' : '' });
+  return {
+    title: n ? 'Edit note' : 'New note', focus: L.id ? null : 'ntTitle',
+    html: `<label class="f">Title<input class="in" id="ntTitle" data-f="title" value="${esc(f.title)}"></label>
+      <label class="f">Type<select class="in" id="ntTag" data-f="tag">${NOTE_TAGS.map(t => `<option ${f.tag === t ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="f">Note<textarea class="in" id="ntBody" data-f="body">${esc(f.body)}</textarea></label>
+      <button class="btn pri full" data-act="noteSave" ${(f.title.trim() || f.body.trim()) && !L.busy ? '' : 'disabled'}>${L.busy ? 'Saving…' : 'Save note'}</button>
+      ${L.err ? `<p class="small" style="color:var(--bad)">${esc(L.err)}</p>` : ''}
+      ${n ? `<button class="btn danger full" data-act="noteDel">${L.confirm ? 'Tap again to delete' : 'Delete note'}</button>` : ''}`
+  };
+}
+
+/* Rests --------------------------------------------------------- */
+function layerShort(L) {
+  const d = D(), c = S.c, left = d.L - c.hdSpent;
+  const n = L.n || 0;
+  let h = `<p>Pact slots come back. You can also spend Hit Dice (d8 + ${d.m.con} CON each) to heal.</p>
+    <div class="spread"><span>Hit Dice to spend <span class="small muted">(${left} left)</span></span><div class="stepper"><button class="btn" data-act="srN" data-d="-1">−</button><b>${n}</b><button class="btn" data-act="srN" data-d="1">+</button></div></div>`;
+  if (n > 0) h += `<label class="f">Total rolled on ${n}d8<input class="in die" id="srRoll" inputmode="numeric" value="${esc(L.roll || '')}" style="width:100%"></label>`;
+  const r = parseInt(L.roll, 10);
+  const heal = n > 0 && r >= n ? r + n * d.m.con : 0;
+  if (heal) h += `<p class="breakdown">${r} rolled + ${n * d.m.con} CON = <b>${heal} HP</b></p>`;
+  h += `<button class="btn pri full" data-act="srDo" ${n > 0 && !heal ? 'disabled' : ''}>Finish Short Rest${heal ? ' (+' + heal + ' HP)' : ''}</button>`;
+  return { title: 'Short Rest', html: h };
+}
+function layerLong() {
+  return { title: 'Long Rest', html: `<p>Restores HP, Hit Dice, Pact slots and every once-per-Long-Rest resource, gives back Heroic Inspiration, clears temp HP and concentration, and lowers Exhaustion by 1.</p><button class="btn pri full" data-act="lrDo">Finish Long Rest</button>` };
+}
+function layerUndo() {
+  const h = S.c.history[S.c.history.length - 1];
+  return { title: 'Undo level-up', html: `<p>Return Cletus to level ${h.level} with the choices he had before. Current HP, slots and trackers stay as they are (HP is capped at the new maximum).</p><button class="btn danger full" data-act="undoDo">Undo to level ${h.level}</button>` };
+}
+
+/* ---------------- Level-up wizard ---------------- */
+function startWizard() {
+  const c = S.c, L = c.level + 1;
+  const steps = ['overview', 'hp'];
+  if (ASI_LEVELS.includes(L)) steps.push('asi');
+  if (L === 19) steps.push('boon');
+  steps.push('inv', 'cantrip', 'spells');
+  if (ARCANUM[L]) steps.push('arc');
+  steps.push('confirm');
+  openLayer({ type: 'level', L, steps, i: 0, w: { hpMode: 'avg', hpRoll: '', asiMode: 'asi', asiA: 'cha', asiB: '', asiPlus2: c.abilities.cha <= 18, feat: '', featAb: '', featSave: '', featSkill: '', featExp: '', boon: '', boonAb: 'cha', invAdd: [], invChoice: {}, invOut: '', invIn: '', invInChoice: '', canAdd: [], canOut: '', canIn: '', spAdd: [], spOut: '', spIn: '', arc: '' } });
+}
+function wizCtx(L) {
+  // State of invocations after this level's picks, for prerequisite checks.
+  const w = L.w, c = S.c;
+  let invs = c.invocations.map(i => i.id);
+  if (w.invOut) invs = invs.filter((x, i) => String(i) !== w.invOut);
+  invs = invs.concat(w.invAdd);
+  if (w.invIn) invs.push(w.invIn);
+  let cans = c.cantrips.slice();
+  if (w.canOut) cans = cans.filter(x => x !== w.canOut);
+  cans = cans.concat(w.canAdd);
+  if (w.canIn) cans.push(w.canIn);
+  return { invs, cans };
+}
+function invEligible(id, L, ctx, ignoreOwned) {
+  const v = INV[id], lvl = L.L;
+  if (lvl < v.min) return `Needs level ${v.min}`;
+  if (v.needs === 'blade' && !ctx.invs.includes('pactBlade')) return 'Needs Pact of the Blade';
+  if (v.needs === 'thirsting' && !S.c.invocations.some(i => i.id === 'thirstingBlade')) return 'Needs Thirsting Blade';
+  if (v.needs === 'dmgCantrip' && !ctx.cans.some(x => DMG_CANTRIPS.includes(x))) return 'Needs a damaging warlock cantrip';
+  if (!ignoreOwned && !v.rep && S.c.invocations.some(i => i.id === id)) return 'Already known';
+  return '';
+}
+function choiceSelect(kind, id, value, key) {
+  if (kind === 'cantrip') {
+    const ctx = { cans: S.c.cantrips };
+    const taken = invChoice(id);
+    const opts = ctx.cans.filter(x => DMG_CANTRIPS.includes(x) && !taken.includes(x));
+    return `<select class="in" id="ch-${key}" data-wchoice="${key}"><option value="">Choose cantrip</option>${opts.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${SP[o].n}</option>`).join('')}</select>`;
+  }
+  const owned = originFeats();
+  const opts = Object.keys(ORIGIN_FEATS).filter(f => !owned.includes(f) || f === 'magicInitiate' || f === 'skilled');
+  return `<select class="in" id="ch-${key}" data-wchoice="${key}"><option value="">Choose Origin feat</option>${opts.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${ORIGIN_FEATS[o][0]}</option>`).join('')}</select>`;
+}
+function abOptions(list, sel, cap) {
+  const c = S.c;
+  return list.map(a => `<option value="${a}" ${sel === a ? 'selected' : ''} ${c.abilities[a] >= cap ? 'disabled' : ''}>${ABN[a]} (${c.abilities[a]})</option>`).join('');
+}
+function wizValid(L) {
+  const w = L.w, c = S.c, step = L.steps[L.i], lvl = L.L;
+  if (step === 'hp') { if (w.hpMode === 'roll') { const r = parseInt(w.hpRoll, 10); return r >= 1 && r <= 8; } return true; }
+  if (step === 'asi') {
+    if (w.asiMode === 'asi') return w.asiPlus2 ? c.abilities[w.asiA] <= 18 : (w.asiA && w.asiB && w.asiA !== w.asiB && c.abilities[w.asiA] < 20 && c.abilities[w.asiB] < 20);
+    if (!w.feat || !w.featAb) return false;
+    if (w.feat === 'skillExpert' && (!w.featSkill || !w.featExp)) return false;
+    return true;
+  }
+  if (step === 'boon') return !!w.boon && !!w.boonAb;
+  if (step === 'inv') {
+    const need = INV_COUNT[lvl] - INV_COUNT[lvl - 1];
+    if (w.invAdd.length !== need) return false;
+    for (const id of w.invAdd) if (INV[id].rep && !w.invChoice[id]) return false;
+    if (w.invOut !== '' && !w.invIn) return false;
+    if (w.invIn && INV[w.invIn].rep && !w.invInChoice) return false;
+    return true;
+  }
+  if (step === 'cantrip') { const need = CANTRIPS[lvl] - CANTRIPS[lvl - 1]; return w.canAdd.length === need && (!w.canOut || !!w.canIn); }
+  if (step === 'spells') { const need = PREPARED[lvl] - PREPARED[lvl - 1]; return w.spAdd.length === need && (!w.spOut || !!w.spIn); }
+  if (step === 'arc') return !!w.arc;
+  return true;
+}
+function gainsAt(lvl) {
+  const g = [];
+  if (INV_COUNT[lvl] > INV_COUNT[lvl - 1]) g.push(`${INV_COUNT[lvl] - INV_COUNT[lvl - 1]} new Eldritch Invocation${INV_COUNT[lvl] - INV_COUNT[lvl - 1] > 1 ? 's' : ''}`);
+  if (CANTRIPS[lvl] > CANTRIPS[lvl - 1]) g.push('1 new warlock cantrip');
+  if (PREPARED[lvl] > PREPARED[lvl - 1]) g.push(`${PREPARED[lvl] - PREPARED[lvl - 1]} more prepared spell${PREPARED[lvl] - PREPARED[lvl - 1] > 1 ? 's' : ''}`);
+  if (SLOTS[lvl] > SLOTS[lvl - 1]) g.push(`A ${SLOTS[lvl]}th Pact slot`.replace('3th', '3rd'));
+  if (SLOT_LVL[lvl] > SLOT_LVL[lvl - 1]) g.push(`Pact slots become level ${SLOT_LVL[lvl]}`);
+  if (ASI_LEVELS.includes(lvl)) g.push('Ability Score Improvement or a feat');
+  if (lvl === 19) g.push('Epic Boon feat');
+  if (ARCANUM[lvl]) g.push(`Mystic Arcanum: one level ${ARCANUM[lvl]} spell`);
+  if (FEY_SPELLS[lvl]) g.push('Archfey spells: ' + FEY_SPELLS[lvl].map(id => SP[id].n).join(', '));
+  if (lvl === 5) g.push('Backdraft Spark fires 2 beams; Vicious Mockery 2d6');
+  if (lvl === 11) g.push('Backdraft Spark fires 3 beams; Vicious Mockery 3d6');
+  if (lvl === 17) g.push('Backdraft Spark fires 4 beams; Vicious Mockery 4d6');
+  if ([5, 9, 13, 17].includes(lvl)) g.push(`Proficiency bonus +${Math.ceil(lvl / 4) + 1}`);
+  const feat = { 6: 'Misty Escape (reaction teleport) and new Steps of the Fey options', 9: 'Contact Patron', 10: 'Beguiling Defenses: immune to Charmed', 14: 'Bewitching Magic', 20: 'Eldritch Master' }[lvl];
+  if (feat) g.push(feat);
+  g.push('You may swap one invocation, one cantrip and one prepared spell');
+  return g;
+}
+function layerLevel(L) {
+  const d = D(), c = S.c, w = L.w, lvl = L.L, step = L.steps[L.i];
+  let h = `<div class="wiz-steps">${L.steps.map((s, i) => `<i class="${i <= L.i ? 'on' : ''}"></i>`).join('')}</div>`;
+  if (step === 'overview') {
+    h += `<p>Cletus goes from level ${c.level} to <b>level ${lvl}</b>. Here's what he gains:</p><ul>${gainsAt(lvl).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+  }
+  if (step === 'hp') {
+    h += `<p>Hit Points go up by a d8 roll (or the average, 5) plus CON ${sg(d.m.con)}${d.feats.includes('tough') ? ' plus 2 (Tough)' : ''}.</p>
+      <div class="seg" role="group" aria-label="HP method"><button class="${w.hpMode === 'avg' ? 'on' : ''}" data-act="w" data-k="hpMode" data-v="avg">Take 5</button><button class="${w.hpMode === 'roll' ? 'on' : ''}" data-act="w" data-k="hpMode" data-v="roll">I rolled</button></div>`;
+    if (w.hpMode === 'roll') h += `<label class="f">Your d8 roll<input class="in die" id="wHp" data-wk="hpRoll" inputmode="numeric" value="${esc(w.hpRoll)}"></label>`;
+    const base = w.hpMode === 'avg' ? 5 : parseInt(w.hpRoll, 10);
+    if (base >= 1 && base <= 8) h += `<p class="breakdown">+${base + d.m.con + (d.feats.includes('tough') ? 2 : 0)} HP this level</p>`;
+  }
+  if (step === 'asi') {
+    h += `<div class="seg" role="group" aria-label="ASI or feat"><button class="${w.asiMode === 'asi' ? 'on' : ''}" data-act="w" data-k="asiMode" data-v="asi">Ability scores</button><button class="${w.asiMode === 'feat' ? 'on' : ''}" data-act="w" data-k="asiMode" data-v="feat">A feat</button></div>`;
+    if (w.asiMode === 'asi') {
+      h += `<div class="seg" role="group"><button class="${w.asiPlus2 ? 'on' : ''}" data-act="w" data-k="asiPlus2" data-v="1">+2 to one</button><button class="${!w.asiPlus2 ? 'on' : ''}" data-act="w" data-k="asiPlus2" data-v="0">+1 to two</button></div>
+        <label class="f">${w.asiPlus2 ? '+2 to' : 'First +1'}<select class="in" id="wAsiA" data-wk="asiA">${abOptions(AB, w.asiA, w.asiPlus2 ? 19 : 20)}</select></label>`;
+      if (!w.asiPlus2) h += `<label class="f">Second +1<select class="in" id="wAsiB" data-wk="asiB"><option value="">Choose</option>${abOptions(AB.filter(a => a !== w.asiA), w.asiB, 20)}</select></label>`;
+      h += '<p class="small muted">Scores max out at 20. Charisma 20 is the usual warlock pick.</p>';
+    } else {
+      h += `<label class="f">Feat<select class="in" id="wFeat" data-wk="feat"><option value="">Choose a feat</option>${GENERAL_FEATS.filter(f => !c.feats.some(x => x.id === f[0])).map(f => `<option value="${f[0]}" ${w.feat === f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}</select></label>`;
+      if (w.feat) {
+        const f = GF[w.feat];
+        const abs = f.ab === 'any' ? AB : f.ab;
+        h += `<div class="card small"><p>${esc(f.s)}</p><p class="muted">Prerequisite: ${esc(f.pre)}</p></div>
+          <label class="f">+1 to<select class="in" id="wFeatAb" data-wk="featAb"><option value="">Choose</option>${abOptions(abs, w.featAb, 20)}</select></label>`;
+        if (w.feat === 'skillExpert') {
+          h += `<label class="f">New skill proficiency<select class="in" id="wFeatSkill" data-wk="featSkill"><option value="">Choose</option>${SKILLS.filter(s => !c.skillProf.includes(s[0])).map(s => `<option value="${s[0]}" ${w.featSkill === s[0] ? 'selected' : ''}>${s[1]}</option>`).join('')}</select></label>
+            <label class="f">Expertise in<select class="in" id="wFeatExp" data-wk="featExp"><option value="">Choose</option>${SKILLS.filter(s => (c.skillProf.includes(s[0]) || s[0] === w.featSkill) && !c.expertise.includes(s[0])).map(s => `<option value="${s[0]}" ${w.featExp === s[0] ? 'selected' : ''}>${s[1]}</option>`).join('')}</select></label>`;
+        }
+        if (w.feat === 'resilient' && w.featAb && c.saveProf.includes(w.featAb)) h += '<p class="small" style="color:var(--ember)">He\'s already proficient in that save; pick another ability to gain one.</p>';
+      }
+      h += '<p class="small muted">Good picks for Cletus: War Caster or Resilient (Con) for concentration, Fey Touched, Telepathic.</p>';
+    }
+  }
+  if (step === 'boon') {
+    h += `<label class="f">Epic Boon<select class="in" id="wBoon" data-wk="boon"><option value="">Choose</option>${Object.keys(BOONS).map(b => `<option value="${b}" ${w.boon === b ? 'selected' : ''}>${BOONS[b][0]}</option>`).join('')}</select></label>`;
+    if (w.boon) h += `<p class="small">${esc(BOONS[w.boon][1])}</p>`;
+    h += `<label class="f">+1 to (max 30)<select class="in" id="wBoonAb" data-wk="boonAb">${abOptions(AB, w.boonAb, 30)}</select></label>`;
+  }
+  if (step === 'inv') {
+    const need = INV_COUNT[lvl] - INV_COUNT[lvl - 1];
+    const ctx = wizCtx(L);
+    h += `<p>${need ? `Choose <b>${need}</b> new invocation${need > 1 ? 's' : ''} (${w.invAdd.length} chosen).` : 'No new invocations this level.'}</p>`;
+    if (need) {
+      h += INV_ROWS.map(r => r[0]).map(id => {
+        const v = INV[id], why = invEligible(id, L, ctx, w.invAdd.includes(id)), on = w.invAdd.includes(id);
+        const dis = (!!why && !on) || (!on && w.invAdd.length >= need);
+        return `<label class="opt ${dis ? 'dis' : ''}"><input type="checkbox" data-act="wToggle" data-list="invAdd" data-id="${id}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}><span><b>${esc(v.n)}</b><span class="small muted">${esc(v.s)}${why && !on ? ' · ' + why : ''}</span>${on && v.rep ? choiceSelect(v.rep, id, w.invChoice[id] || '', id) : ''}</span></label>`;
+      }).join('');
+    }
+    h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wInvOut" data-wk="invOut"><option value="">Keep all</option>${c.invocations.map((iv, i) => `<option value="${i}" ${w.invOut === String(i) ? 'selected' : ''}>${INV[iv.id] ? INV[iv.id].n : iv.id}</option>`).join('')}</select></label>`;
+    if (w.invOut !== '') {
+      h += `<label class="f">With<select class="in" id="wInvIn" data-wk="invIn"><option value="">Choose</option>${INV_ROWS.map(r => r[0]).filter(id => !w.invAdd.includes(id) && !invEligible(id, L, ctx)).map(id => `<option value="${id}" ${w.invIn === id ? 'selected' : ''}>${INV[id].n}</option>`).join('')}</select></label>`;
+      if (w.invIn && INV[w.invIn].rep) h += choiceSelect(INV[w.invIn].rep, w.invIn, w.invInChoice, '__in');
+    }
+    h += '</div>';
+  }
+  if (step === 'cantrip') {
+    const need = CANTRIPS[lvl] - CANTRIPS[lvl - 1];
+    const pool = SPELL_ROWS.filter(r => r[2] === 0 && r[7] === 'w').map(r => r[0]);
+    const ctxC = c.cantrips.concat(w.canAdd);
+    h += `<p>${need ? `Choose <b>${need}</b> new warlock cantrip (${w.canAdd.length} chosen).` : 'No new cantrips this level.'}</p>`;
+    if (need) h += pool.filter(id => !c.cantrips.includes(id)).map(id => { const on = w.canAdd.includes(id); const dis = !on && w.canAdd.length >= need; return `<label class="opt ${dis ? 'dis' : ''}"><input type="checkbox" data-act="wToggle" data-list="canAdd" data-id="${id}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}><span><b>${SP[id].n}</b><span class="small muted">${esc(SP[id].s)}</span></span></label>`; }).join('');
+    h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wCanOut" data-wk="canOut"><option value="">Keep all</option>${c.cantrips.map(id => `<option value="${id}" ${w.canOut === id ? 'selected' : ''}>${SP[id].n}</option>`).join('')}</select></label>
+      ${w.canOut ? `<label class="f">With<select class="in" id="wCanIn" data-wk="canIn"><option value="">Choose</option>${pool.filter(id => !ctxC.includes(id)).map(id => `<option value="${id}" ${w.canIn === id ? 'selected' : ''}>${SP[id].n}</option>`).join('')}</select></label>` : ''}</div>`;
+  }
+  if (step === 'spells') {
+    const need = PREPARED[lvl] - PREPARED[lvl - 1];
+    const maxL = SLOT_LVL[lvl];
+    const always = alwaysPrepared(lvl);
+    const pool = SPELL_ROWS.filter(r => r[7] === 'w' && r[2] >= 1 && r[2] <= maxL).map(r => r[0]).filter(id => !always.includes(id));
+    const have = c.prepared.concat(w.spAdd);
+    h += `<p>${need ? `Choose <b>${need}</b> more spell${need > 1 ? 's' : ''} of level ${maxL} or lower (${w.spAdd.length} chosen).` : 'No new spells this level.'}</p>`;
+    if (need) {
+      for (let sl = 1; sl <= maxL; sl++) {
+        const ids = pool.filter(id => SP[id].l === sl && !c.prepared.includes(id));
+        if (!ids.length) continue;
+        h += `<div class="grp">Level ${sl}</div>` + ids.map(id => { const on = w.spAdd.includes(id); const dis = !on && w.spAdd.length >= need; return `<label class="opt ${dis ? 'dis' : ''}"><input type="checkbox" data-act="wToggle" data-list="spAdd" data-id="${id}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}><span><b>${SP[id].n}</b> ${SP[id].c ? '<span class="tag c">Conc.</span>' : ''}<span class="small muted">${esc(SP[id].s)}</span></span></label>`; }).join('');
+      }
+    }
+    h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wSpOut" data-wk="spOut"><option value="">Keep all</option>${c.prepared.map(id => `<option value="${id}" ${w.spOut === id ? 'selected' : ''}>${SP[id].n}</option>`).join('')}</select></label>
+      ${w.spOut ? `<label class="f">With<select class="in" id="wSpIn" data-wk="spIn"><option value="">Choose</option>${pool.filter(id => !have.includes(id)).map(id => `<option value="${id}" ${w.spIn === id ? 'selected' : ''}>${SP[id].n} (level ${SP[id].l})</option>`).join('')}</select></label>` : ''}</div>`;
+  }
+  if (step === 'arc') {
+    const al = ARCANUM[lvl];
+    h += `<p>Choose a level ${al} warlock spell. He can cast it once per Long Rest without a slot.</p>` + SPELL_ROWS.filter(r => r[7] === 'w' && r[2] === al).map(r => `<label class="opt"><input type="radio" name="arc" data-act="w" data-k="arc" data-v="${r[0]}" ${w.arc === r[0] ? 'checked' : ''}><span><b>${r[1]}</b> ${r[5] ? '<span class="tag c">Conc.</span>' : ''}<span class="small muted">${esc(r[6])}</span></span></label>`).join('');
+  }
+  if (step === 'confirm') {
+    const lines = [];
+    const base = w.hpMode === 'avg' ? 5 : parseInt(w.hpRoll, 10);
+    lines.push(`Hit Points: +${base} (d8) + CON`);
+    if (L.steps.includes('asi')) lines.push(w.asiMode === 'asi' ? (w.asiPlus2 ? `${ABN[w.asiA]} +2` : `${ABN[w.asiA]} +1, ${ABN[w.asiB]} +1`) : `Feat: ${GF[w.feat].n} (${ABN[w.featAb]} +1)`);
+    if (L.steps.includes('boon')) lines.push(`Epic Boon: ${BOONS[w.boon][0]} (${ABN[w.boonAb]} +1)`);
+    w.invAdd.forEach(id => lines.push(`Invocation: ${INV[id].n}${w.invChoice[id] ? ' (' + (SP[w.invChoice[id]] ? SP[w.invChoice[id]].n : ORIGIN_FEATS[w.invChoice[id]][0]) + ')' : ''}`));
+    if (w.invOut !== '' && w.invIn) lines.push(`Swap invocation: ${INV[c.invocations[+w.invOut].id].n} → ${INV[w.invIn].n}`);
+    w.canAdd.forEach(id => lines.push(`Cantrip: ${SP[id].n}`));
+    if (w.canOut && w.canIn) lines.push(`Swap cantrip: ${SP[w.canOut].n} → ${SP[w.canIn].n}`);
+    w.spAdd.forEach(id => lines.push(`Spell: ${SP[id].n}`));
+    if (w.spOut && w.spIn) lines.push(`Swap spell: ${SP[w.spOut].n} → ${SP[w.spIn].n}`);
+    if (w.arc) lines.push(`Mystic Arcanum: ${SP[w.arc].n}`);
+    h += `<p>Ready to make Cletus level ${lvl}:</p><ul>${lines.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="small muted">You can undo this from the Sheet tab.</p>`;
+  }
+  const valid = wizValid(L);
+  h += `<div class="grid2">${L.i > 0 ? '<button class="btn full" data-act="wBack">Back</button>' : '<span></span>'}${step === 'confirm' ? '<button class="btn pri full" data-act="wApply">Level up</button>' : `<button class="btn pri full" data-act="wNext" ${valid ? '' : 'disabled'}>Next</button>`}</div>`;
+  return { title: `Level up to ${lvl}`, html: h };
+}
+function applyLevel(L) {
+  const c = S.c, w = L.w, lvl = L.L;
+  const before = D().hpMax;
+  c.history.push(clone({ level: c.level, abilities: c.abilities, hpRolls: c.hpRolls, invocations: c.invocations, cantrips: c.cantrips, prepared: c.prepared, arcanum: c.arcanum, feats: c.feats, boon: c.boon, saveProf: c.saveProf, skillProf: c.skillProf, expertise: c.expertise }));
+  if (c.history.length > 20) c.history.shift();
+  c.level = lvl;
+  c.hpRolls.push(w.hpMode === 'avg' ? 5 : parseInt(w.hpRoll, 10));
+  if (L.steps.includes('asi')) {
+    if (w.asiMode === 'asi') {
+      if (w.asiPlus2) c.abilities[w.asiA] = Math.min(20, c.abilities[w.asiA] + 2);
+      else { c.abilities[w.asiA] = Math.min(20, c.abilities[w.asiA] + 1); c.abilities[w.asiB] = Math.min(20, c.abilities[w.asiB] + 1); }
+      c.feats.push({ id: 'asi', src: 'Level ' + lvl, note: w.asiPlus2 ? `${ABN[w.asiA]} +2` : `${ABN[w.asiA]} +1, ${ABN[w.asiB]} +1` });
+    } else {
+      c.abilities[w.featAb] = Math.min(20, c.abilities[w.featAb] + 1);
+      const entry = { id: w.feat, src: 'Level ' + lvl, note: `${ABN[w.featAb]} +1` };
+      if (w.feat === 'resilient' && !c.saveProf.includes(w.featAb)) c.saveProf.push(w.featAb);
+      if (w.feat === 'skillExpert') { if (!c.skillProf.includes(w.featSkill)) c.skillProf.push(w.featSkill); if (!c.expertise.includes(w.featExp)) c.expertise.push(w.featExp); entry.note += `, ${SKN[w.featSkill][1]}, Expertise ${SKN[w.featExp][1]}`; }
+      c.feats.push(entry);
+    }
+  }
+  if (L.steps.includes('boon')) { c.boon = { id: w.boon, ab: w.boonAb }; c.abilities[w.boonAb] = Math.min(30, c.abilities[w.boonAb] + 1); }
+  if (w.invOut !== '' && w.invIn) c.invocations.splice(+w.invOut, 1, { id: w.invIn, choice: w.invInChoice || undefined });
+  w.invAdd.forEach(id => c.invocations.push(w.invChoice[id] ? { id, choice: w.invChoice[id] } : { id }));
+  if (w.canOut && w.canIn) c.cantrips = c.cantrips.map(x => x === w.canOut ? w.canIn : x);
+  c.cantrips = c.cantrips.concat(w.canAdd);
+  if (w.spOut && w.spIn) c.prepared = c.prepared.map(x => x === w.spOut ? w.spIn : x);
+  c.prepared = c.prepared.concat(w.spAdd);
+  if (w.arc) c.arcanum[ARCANUM[lvl]] = w.arc;
+  const after = D().hpMax;
+  c.hp = Math.max(0, c.hp + (after - before));
+  c.slotsUsed = Math.min(c.slotsUsed, SLOTS[lvl]);
+}
+
+/* ---------------- Actions ---------------- */
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status');
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2200);
+}
+function applyDamage(n) {
+  const c = S.c; let rest = n;
+  if (c.temp > 0) { const ab = Math.min(c.temp, rest); c.temp -= ab; rest -= ab; if (c.temp === 0) c.agathys = 0; }
+  const wasUp = c.hp > 0;
+  c.hp = Math.max(0, c.hp - rest);
+  if (!wasUp && n > 0) c.deathF = Math.min(3, c.deathF + 1);
+  if (wasUp && c.hp === 0) { c.deathS = 0; c.deathF = 0; if (c.conc) c.conc = null; }
+}
+function applyHeal(n) {
+  const c = S.c, d = D();
+  if (c.hp === 0 && n > 0) { c.deathS = 0; c.deathF = 0; }
+  c.hp = Math.min(d.hpMax, c.hp + n);
+}
+const ACTIONS = {
+  close: () => closeLayer(),
+  ovClose: (el, ev) => { if (ev.target === el) closeLayer(); },
+  roll: el => openLayer({ type: 'roll', k: el.dataset.k || S.lastRoll || 'stakeAtk' }),
+  hp: el => openLayer({ type: 'hp', mode: el.dataset.mode }),
+  hpApply: () => {
+    const L = S.layer, n = parseInt(($('#hpAmt') || {}).value, 10);
+    if (!(n >= 0)) return;
+    const c = S.c;
+    if (L.mode === 'dmg') {
+      const conc = c.conc;
+      const agathys = c.temp > 0 ? c.agathys : 0;
+      applyDamage(n);
+      closeLayer(); commit();
+      if (agathys) toast(`Armor of Agathys: a melee attacker takes ${agathys} Cold.`);
+      if (conc && c.conc && n > 0) openLayer({ type: 'roll', k: 'conc', concDmg: String(n) });
+      return;
+    }
+    if (L.mode === 'heal') applyHeal(n);
+    if (L.mode === 'temp') { if (n > c.temp) { c.temp = n; c.agathys = 0; } }
+    closeLayer(); commit();
+  },
+  endConc: () => { S.c.conc = null; if (S.layer && S.layer.type === 'roll') closeLayer(); commit(); toast('Concentration ended.'); },
+  mageArmor: () => { S.c.mageArmor = true; commit(); },
+  slot: el => { const i = +el.dataset.i, c = S.c; c.slotsUsed = i < c.slotsUsed ? i : i + 1; commit(); },
+  use: el => { const u = el.dataset.u, i = +el.dataset.i, c = S.c; c.uses[u] = i < c.uses[u] ? i : i + 1; commit(); },
+  hd: el => { const i = +el.dataset.i, c = S.c; c.hdSpent = i < c.hdSpent ? i : i + 1; commit(); },
+  cunning: () => { const c = S.c, d = D(); if (c.uses.cunning) return; const back = d.L >= 20 ? c.slotsUsed : Math.min(c.slotsUsed, Math.ceil(d.slots / 2)); c.slotsUsed -= back; c.uses.cunning = 1; commit(); toast(`Magical Cunning: ${back} slot${back === 1 ? '' : 's'} back.`); },
+  heroic: () => { S.c.heroic = !S.c.heroic; commit(); },
+  kit: el => { const c = S.c; c.healerKit = Math.max(0, c.healerKit + +el.dataset.d); commit(); },
+  dsS: el => { const i = +el.dataset.i, c = S.c; c.deathS = i < c.deathS ? i : i + 1; commit(); },
+  dsF: el => { const i = +el.dataset.i, c = S.c; c.deathF = i < c.deathF ? i : i + 1; commit(); },
+  cond: el => { const c = S.c, id = el.dataset.id; c.conditions = c.conditions.includes(id) ? c.conditions.filter(x => x !== id) : c.conditions.concat(id); commit(); },
+  exh: el => { const c = S.c; c.exhaustion = Math.max(0, Math.min(6, c.exhaustion + +el.dataset.d)); commit(); if (c.exhaustion === 6) toast('Exhaustion 6: Cletus dies.'); },
+  shortRest: () => openLayer({ type: 'short', n: 0 }),
+  srN: el => { const L = S.layer, d = D(), left = d.L - S.c.hdSpent; L.n = Math.max(0, Math.min(left, (L.n || 0) + +el.dataset.d)); renderLayer(); },
+  srDo: () => {
+    const L = S.layer, c = S.c, d = D();
+    const n = L.n || 0, r = parseInt(L.roll, 10);
+    if (n > 0 && r >= n) { applyHeal(r + n * d.m.con); c.hdSpent += n; }
+    c.slotsUsed = 0;
+    closeLayer(); commit(); toast('Short Rest done. Pact slots restored.');
+  },
+  longRest: () => openLayer({ type: 'long' }),
+  lrDo: () => {
+    const c = S.c, d = D();
+    c.hp = d.hpMax; c.temp = 0; c.agathys = 0; c.hdSpent = 0; c.slotsUsed = 0; c.deathS = 0; c.deathF = 0; c.conc = null; c.heroic = true; c.mageArmor = true;
+    Object.keys(c.uses).forEach(k => { c.uses[k] = 0; });
+    c.exhaustion = Math.max(0, c.exhaustion - 1);
+    closeLayer(); commit(); toast('Long Rest done. Fully restored.');
+  },
+  rollMode: el => { S.layer.mode = el.dataset.m; renderLayer(); },
+  rollOpt: el => { const o = S.layer.opts; o[el.dataset.o] = !o[el.dataset.o]; renderLayer(); },
+  deathApply: el => {
+    const r = +el.dataset.r, c = S.c;
+    if (r === 20) { c.hp = 1; c.deathS = 0; c.deathF = 0; toast('Cletus is back up with 1 HP!'); }
+    else if (r === 1) c.deathF = Math.min(3, c.deathF + 2);
+    else if (r >= 10) c.deathS = Math.min(3, c.deathS + 1);
+    else c.deathF = Math.min(3, c.deathF + 1);
+    if (c.deathS >= 3) toast('Three successes: Cletus is stable.');
+    if (c.deathF >= 3) toast('Three failures: Cletus has died.');
+    closeLayer(); commit();
+  },
+  selfHeal: el => { applyHeal(+el.dataset.v); closeLayer(); commit(); },
+  lifeHeal: el => { const c = S.c; if (c.hdSpent >= c.level) { toast('No Hit Dice left.'); return; } c.hdSpent += 1; applyHeal(+el.dataset.v); closeLayer(); commit(); },
+  selfTemp: el => { const c = S.c, v = +el.dataset.v; if (v > c.temp) { c.temp = v; c.agathys = 0; } closeLayer(); commit(); },
+  cast: el => openLayer({ type: 'cast', id: el.dataset.id }),
+  castDo: el => {
+    const via = el.dataset.via, c = S.c, d = D(), id = S.layer.id, s = SP[id];
+    if (via === 'slot') { if (c.slotsUsed >= d.slots) return; c.slotsUsed += 1; }
+    if (via === 'steps') c.uses.steps += 1;
+    if (via === 'freeHW') c.uses.freeHW = 1;
+    if (via === 'patron') c.uses.patron = 1;
+    if (via.startsWith('arc')) c.uses[via] = 1;
+    if (id === 'mageArmor') c.mageArmor = true;
+    if (s.c) c.conc = id;
+    if (id === 'armorAgathys') { const lv = via === 'slot' ? d.slotLvl : 1; const t = 5 * lv; if (t >= c.temp) { c.temp = t; c.agathys = t; } }
+    closeLayer(); commit();
+    if (id === 'healingWord') openLayer({ type: 'roll', k: 'hwHeal', opts: { slot: via === 'slot' ? d.slotLvl : 1 } });
+    else if (id === 'eldritchBlast') openLayer({ type: 'roll', k: 'sparkAtk' });
+    else if (id === 'viciousMockery') openLayer({ type: 'roll', k: 'vmDmg' });
+    else toast(`${s.n} cast.`);
+  },
+  item: el => openLayer({ type: 'item', id: el.dataset.id || '' }),
+  itemSave: () => {
+    const L = S.layer, f = L.form, c = S.c;
+    const qty = Math.max(0, parseInt(f.qty, 10) || 0);
+    if (!f.name.trim()) return;
+    if (L.id) { const it = c.inventory.find(i => i.id === L.id); Object.assign(it, { name: f.name.trim(), qty, note: f.note.trim() }); }
+    else c.inventory.push({ id: uid(), name: f.name.trim(), qty, note: f.note.trim() });
+    closeLayer(); commit();
+  },
+  itemDel: () => { const L = S.layer; if (!L.confirm) { L.confirm = true; renderLayer(); return; } S.c.inventory = S.c.inventory.filter(i => i.id !== L.id); closeLayer(); commit(); },
+  qty: el => { const it = S.c.inventory.find(i => i.id === el.dataset.id); if (!it) return; it.qty = Math.max(0, it.qty + +el.dataset.d); commit(); },
+  note: el => openLayer({ type: 'note', id: el.dataset.id || '' }),
+  noteTag: el => { S.noteTag = el.dataset.t; render(); },
+  noteSave: async () => {
+    const L = S.layer, f = L.form;
+    if (!S.notesCol) { L.err = 'Notes need the cloud connection. Try again in claude.ai.'; renderLayer(); return; }
+    L.busy = true; L.err = ''; renderLayer();
+    const body = { title: f.title.trim(), tag: f.tag, body: f.body, updated: Date.now() };
+    try {
+      if (L.id) { const old = S.notes.find(n => n.id === L.id); await S.notesCol.doc(L.id).set(Object.assign({ created: old && old.created || Date.now() }, body)); }
+      else await S.notesCol.add(Object.assign({ created: Date.now() }, body));
+      closeLayer(); render(); toast('Note saved.');
+    } catch (e) {
+      L.busy = false; L.err = e && e.code === 'quota_exceeded' ? 'Storage is full. Delete some old notes and try again.' : 'Couldn\'t save the note. Check your connection and try again.'; renderLayer();
+    }
+  },
+  noteDel: async () => {
+    const L = S.layer;
+    if (!L.confirm) { L.confirm = true; renderLayer(); return; }
+    try { await S.notesCol.doc(L.id).delete(); closeLayer(); render(); toast('Note deleted.'); }
+    catch (e) { L.err = 'Couldn\'t delete the note. Try again.'; L.confirm = false; renderLayer(); }
+  },
+  levelUp: () => startWizard(),
+  undoLevel: () => openLayer({ type: 'undo' }),
+  undoDo: () => {
+    const c = S.c, snap = c.history.pop();
+    Object.assign(c, snap);
+    const d = D(); c.hp = Math.min(c.hp, d.hpMax); c.slotsUsed = Math.min(c.slotsUsed, d.slots); c.hdSpent = Math.min(c.hdSpent, d.L);
+    if (c.conc && !c.prepared.includes(c.conc) && !alwaysPrepared(d.L).includes(c.conc) && !Object.values(c.arcanum).includes(c.conc)) c.conc = null;
+    closeLayer(); commit(); toast(`Back to level ${c.level}.`);
+  },
+  w: el => {
+    const L = S.layer, k = el.dataset.k; let v = el.dataset.v;
+    if (k === 'asiPlus2') v = v === '1';
+    L.w[k] = v;
+    if (k === 'asiMode' || k === 'asiPlus2') { L.w.asiB = ''; }
+    renderLayer();
+  },
+  wToggle: el => {
+    const L = S.layer, list = L.w[el.dataset.list], id = el.dataset.id;
+    const i = list.indexOf(id); if (i >= 0) { list.splice(i, 1); delete L.w.invChoice[id]; } else list.push(id);
+    renderLayer();
+  },
+  wNext: () => { const L = S.layer; if (!wizValid(L)) return; L.i = Math.min(L.steps.length - 1, L.i + 1); const sh = $('#layer .sheet'); renderLayer(); if (sh) { const n = $('#layer .sheet'); if (n) n.scrollTop = 0; } },
+  wBack: () => { const L = S.layer; L.i = Math.max(0, L.i - 1); renderLayer(); const n = $('#layer .sheet'); if (n) n.scrollTop = 0; },
+  wApply: () => { const L = S.layer; applyLevel(L); closeLayer(); commit(); toast(`Cletus is now level ${S.c.level}!`); },
+  export: async () => {
+    if (!S.dl) return;
+    try { await S.dl.save({ filename: `cletus-level-${S.c.level}.json`, data: JSON.stringify(S.c, null, 2) }); }
+    catch (e) { if (e && e.code !== 'declined') toast('Couldn\'t save the backup file here.'); }
+  }
+};
+
+document.addEventListener('click', ev => {
+  const tab = ev.target.closest('[data-tab]');
+  if (tab) { S.tab = tab.dataset.tab; try { localStorage.setItem(LS_KEY + '-tab', S.tab); } catch (e) {} render(); window.scrollTo(0, 0); return; }
+  const el = ev.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  if (act === 'rollKind' || act === 'hwSlot') return; // handled on change
+  if (el.tagName === 'INPUT' && el.type !== 'checkbox' && el.type !== 'radio') return;
+  if (act === 'ovClose' && ev.target !== el) return;
+  const fn = ACTIONS[act];
+  if (fn) { if (el.tagName === 'INPUT') { /* let checkbox/radio settle */ } else ev.preventDefault(); fn(el, ev); }
+});
+document.addEventListener('change', ev => {
+  const el = ev.target;
+  if (el.id === 'rollKind') { const L = S.layer; L.k = el.value; S.lastRoll = el.value; L.d1 = ''; L.d2 = ''; L.vals = {}; L.opts = null; L.mode = 'norm'; renderLayer(); return; }
+  if (el.id === 'hwSlot') { S.layer.opts.slot = +el.value; renderLayer(); return; }
+  if (el.dataset.coin) { const v = Math.max(0, parseInt(el.value, 10) || 0); S.c.coins[el.dataset.coin] = v; commit(); return; }
+  if (el.id === 'importFile') { importFile(el.files && el.files[0]); return; }
+  if (el.dataset.wk && S.layer && S.layer.type === 'level') { S.layer.w[el.dataset.wk] = el.value; if (el.dataset.wk === 'invOut') { S.layer.w.invIn = ''; S.layer.w.invInChoice = ''; } if (el.dataset.wk === 'invIn') S.layer.w.invInChoice = ''; if (el.dataset.wk === 'canOut') S.layer.w.canIn = ''; if (el.dataset.wk === 'spOut') S.layer.w.spIn = ''; if (el.dataset.wk === 'feat') { S.layer.w.featAb = ''; S.layer.w.featSkill = ''; S.layer.w.featExp = ''; } renderLayer(); return; }
+  if (el.dataset.wchoice && S.layer && S.layer.type === 'level') { const k = el.dataset.wchoice; if (k === '__in') S.layer.w.invInChoice = el.value; else S.layer.w.invChoice[k] = el.value; renderLayer(); return; }
+  if (el.dataset.f && S.layer && S.layer.form) { S.layer.form[el.dataset.f] = el.value; renderLayer(); }
+});
+document.addEventListener('input', ev => {
+  const el = ev.target, L = S.layer;
+  if (el.id === 'noteSearch') { S.noteQuery = el.value; render(); return; }
+  if (!L) return;
+  if (L.type === 'roll') {
+    if (el.id === 'd1') L.d1 = el.value; else if (el.id === 'd2') L.d2 = el.value; else if (el.id === 'concDmg') L.concDmg = el.value;
+    else if (el.dataset.dv) L.vals[el.dataset.dv] = el.value; else return;
+    renderLayer(); return;
+  }
+  if (L.type === 'hp' && el.id === 'hpAmt') { L.v = el.value; return; }
+  if (L.type === 'short' && el.id === 'srRoll') { L.roll = el.value; renderLayer(); return; }
+  if (L.type === 'level' && el.dataset.wk) { L.w[el.dataset.wk] = el.value; renderLayer(); return; }
+  if (el.dataset.f && L.form) { L.form[el.dataset.f] = el.value; const btn = $('#layer [data-act="itemSave"], #layer [data-act="noteSave"]'); if (btn) btn.disabled = L.type === 'item' ? !L.form.name.trim() : !(L.form.title.trim() || L.form.body.trim()); }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && S.layer) closeLayer();
+  if (ev.key === 'Enter' && S.layer && S.layer.type === 'hp' && ev.target.id === 'hpAmt') { ev.preventDefault(); ACTIONS.hpApply(); }
+});
+
+function importFile(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (!data || typeof data !== 'object' || !data.abilities || !data.level) throw new Error('bad');
+      S.c = upgrade(data); S.conn = S.docRef ? 'cloud' : 'local';
+      commit(); toast(`Restored Cletus at level ${S.c.level}.`);
+    } catch (e) { openLayer({ type: 'msg', title: 'Couldn\'t restore', text: 'That file isn\'t a Cletus backup. Pick a .json file saved from this app.' }); }
+  };
+  r.readAsText(file);
+}
+window.addEventListener('pagehide', () => { if (S.dirty) flush(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.dirty) flush(); });
+
+boot();
+})();
+</script>
