@@ -32,9 +32,8 @@ of *The Hobbit* he has read a thousand times.
 9. **Eldritch Invocations (3):** Pact of the Blade (L1), **Armor of Shadows** (AC 15 in overalls),
    **Devil's Sight** (sees in magical and nonmagical darkness to 120 ft). Plan for L5: Thirsting Blade + Eldritch Smite or Agonizing Blast.
 10. **Prepared warlock spells (4):** *Hex* (conc.), *Armor of Agathys* (no conc., cast before fights),
-    *Hellish Rebuke* (reaction: the pipe bowl flares and spits fire back, "Now that weren't neighborly"),
-    *Darkness* (conc.; a cloud of black pipe smoke he sees through with Devil's Sight).
-    Note: from L6, Hellish Rebuke competes with Misty Escape for his reaction; candidate to swap out later.
+    *Darkness* (conc.; a cloud of black pipe smoke he sees through with Devil's Sight; can't run with Hex),
+    *Charm Person* (no conc.; folksy Southern charm, 2 humanoids at a level 2 slot; target knows afterwards).
 11. **Starting level: 3** (campaign starts at level 3).
 
 ## Level 3 snapshot (in progress)
