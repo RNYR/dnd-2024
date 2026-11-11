@@ -41,7 +41,7 @@ body {
   color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; letter-spacing: -0.005em;
   padding-left: max(14px, env(safe-area-inset-left, 0px));
   padding-right: max(14px, env(safe-area-inset-right, 0px));
-  padding-block: 10px calc(140px + env(safe-area-inset-bottom, 0px));
+  padding-block: 10px calc(96px + env(safe-area-inset-bottom, 0px));
 }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -101,8 +101,8 @@ p { margin: 0; }
 .trk-row:last-child { border-bottom: 0; }
 .trk-name { min-width: 0; }
 .trk-name .small { display: block; }
-.pips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-.pip { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--ink); background: transparent; padding: 0; }
+.pips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.pip { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--ink); background: transparent; padding: 0; }
 .pip.used { background: transparent; border-style: dashed; border-color: var(--muted); }
 .pip.full { background: var(--moss); }
 .pip.sq { border-radius: 6px; }
@@ -121,6 +121,9 @@ p { margin: 0; }
 .tag { display: inline-block; font-size: 11px; font-family: var(--label); letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; background: var(--chip); color: var(--muted); white-space: nowrap; vertical-align: middle; }
 .tag.c { background: var(--ember); color: var(--ember-ink); }
 .tag.g { background: var(--moss); color: var(--moss-ink); }
+.bonus-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+label.f.inline { grid-template-columns: auto auto; align-items: center; gap: 6px; }
+input.die.sm { width: 64px; font-size: 18px; min-height: 38px; }
 .cond-notes { display: grid; gap: 4px; font-size: 14px; }
 
 /* Attack list */
@@ -135,7 +138,10 @@ p { margin: 0; }
 .spell:last-child { border-bottom: 0; }
 .spell .hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .spell .meta { font-size: 13px; color: var(--muted); }
-.spell .desc { font-size: 14px; }
+.spell .desc { font-size: 14px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.spell.open .desc { -webkit-line-clamp: unset; display: block; color: var(--ink); }
+.sp-name { border: 0; background: transparent; padding: 0; text-align: left; display: grid; gap: 2px; min-width: 0; flex: 1; }
+.sp-name .meta { font-size: 13px; color: var(--muted); }
 .grp { font-family: var(--label); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 8px 0 2px; }
 
 /* Inventory */
@@ -191,19 +197,15 @@ input.die { width: 76px; text-align: center; font-size: 22px; font-weight: 700; 
 /* Tab bar */
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line);
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(6, 1fr);
   padding: 4px max(6px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
 }
 .tabs button { border: 0; background: transparent; padding: 6px 2px; min-height: 52px; display: grid; justify-items: center; gap: 3px; font-family: var(--label); font-size: 11px; font-weight: 500; letter-spacing: .02em; color: var(--muted); }
 .tabs button svg { width: 22px; height: 22px; }
 .tabs button.on { color: var(--ink); font-weight: 600; }
-.fab {
-  position: fixed; z-index: 21; right: max(14px, env(safe-area-inset-right, 0px));
-  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
-  background: var(--ember); color: var(--ember-ink); border: 0; border-radius: 4px; padding: 12px 18px; font-weight: 700; font-size: 16px;
-  box-shadow: none; display: flex; gap: 8px; align-items: center;
-}
-.fab svg { width: 20px; height: 20px; }
+.tabs .roll-tab { color: var(--ink); font-weight: 600; }
+.tabs .roll-tab span { display: grid; place-items: center; width: 40px; height: 28px; border-radius: 4px; background: var(--ink); color: var(--paper); }
+.tabs .roll-tab span svg { width: 18px; height: 18px; }
 
 /* Bottom sheet */
 .ov { position: fixed; inset: 0; z-index: 40; background: var(--shade); display: flex; align-items: flex-end; justify-content: center; }
@@ -214,12 +216,12 @@ input.die { width: 76px; text-align: center; font-size: 22px; font-weight: 700; 
 }
 .sheet .sh-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; position: sticky; top: -14px; background: var(--paper); padding: 4px 0; z-index: 1; }
 .sheet .sh-hd h3 { font-size: 19px; }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(132px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 4px; font-size: 14px; max-width: calc(100% - 32px); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 4px; font-size: 14px; max-width: calc(100% - 32px); }
 .empty { text-align: center; padding: 30px 10px; display: grid; gap: 8px; justify-items: center; }
 .wiz-steps { display: flex; gap: 4px; }
 .wiz-steps i { flex: 1; height: 2px; border-radius: 2px; background: var(--line); }
 .wiz-steps i.on { background: var(--ink); }
-@media (prefers-reduced-motion: no-preference) { .sheet { animation: up .18s ease-out; } @keyframes up { from { transform: translateY(24px); opacity: .6; } } }
+@media (prefers-reduced-motion: no-preference) { .sheet.anim { animation: up .18s ease-out; } @keyframes up { from { transform: translateY(24px); opacity: .6; } } }
 </style>
 
 <div class="wrap" id="app">
@@ -230,13 +232,10 @@ input.die { width: 76px; text-align: center; font-size: 22px; font-weight: 700; 
   <div id="view"><div class="card empty"><p>Loading Cletus…</p></div></div>
 </div>
 
-<button class="fab" id="fab" type="button" data-act="roll" aria-label="Open roll helper">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2v20M3 7l9 5 9-5"/></svg>Roll
-</button>
-
 <nav class="tabs" id="tabs" aria-label="Sections">
   <button type="button" data-tab="play" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>Play</button>
   <button type="button" data-tab="spells"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-2 3-5 5-5 9a5 5 0 0 0 10 0c0-4-3-6-5-9z"/><path d="M12 12c-1 1.5-2 2.5-2 4a2 2 0 0 0 4 0c0-1.5-1-2.5-2-4z"/></svg>Spells</button>
+  <button type="button" class="roll-tab" id="rollTab" data-act="roll" aria-label="Open roll helper"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2v20M3 7l9 5 9-5"/></svg></span>Roll</button>
   <button type="button" data-tab="bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Bag</button>
   <button type="button" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Notes</button>
   <button type="button" data-tab="sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Sheet</button>
@@ -503,7 +502,7 @@ const COND = Object.fromEntries(CONDITIONS.map(c => [c[0], c]));
 const DOC_PATH = 'characters/cletus';
 const LS_KEY = 'cletus-companion-v1';
 const CLIENT = Math.random().toString(36).slice(2, 10);
-const S = { c: null, tab: 'play', db: null, docRef: null, notes: [], notesReady: false, conn: 'loading', saving: false, dirty: false, pending: null, layer: null, noteQuery: '', noteTag: 'all', dl: null };
+const S = { openSpells: new Set(), showConds: false, c: null, tab: 'play', db: null, docRef: null, notes: [], notesReady: false, conn: 'loading', saving: false, dirty: false, pending: null, layer: null, noteQuery: '', noteTag: 'all', dl: null };
 try { const t = localStorage.getItem(LS_KEY + '-tab'); if (t) S.tab = t; } catch (e) {}
 
 const $ = sel => document.querySelector(sel);
@@ -742,7 +741,8 @@ function viewPlay(d) {
 
   // Conditions
   const active = c.conditions || [];
-  h += `<div class="card"><h2>Conditions</h2><div class="chips">${CONDITIONS.map(x => `<button class="chip ${active.includes(x[0]) ? 'on' : ''}" data-act="cond" data-id="${x[0]}" aria-pressed="${active.includes(x[0])}">${x[1]}</button>`).join('')}</div>
+  const condList = S.showConds ? CONDITIONS : CONDITIONS.filter(x => active.includes(x[0]));
+  h += `<div class="card"><h2>Conditions <button class="btn sm" data-act="condToggle" aria-expanded="${S.showConds}">${S.showConds ? 'Done' : 'Add'}</button></h2><div class="chips">${condList.length ? condList.map(x => `<button class="chip ${active.includes(x[0]) ? 'on' : ''}" data-act="cond" data-id="${x[0]}" aria-pressed="${active.includes(x[0])}">${x[1]}${!S.showConds ? ' ×' : ''}</button>`).join('') : '<span class="muted small">None. Tap Add to mark one.</span>'}</div>
     <div class="spread" style="margin-top:10px"><div><b>Exhaustion</b> <span class="small muted">${c.exhaustion ? `−${2 * c.exhaustion} to d20 tests, −${5 * c.exhaustion} ft speed` : 'None'}</span></div><div class="stepper"><button class="btn" data-act="exh" data-d="-1" aria-label="Less exhaustion">−</button><b>${c.exhaustion}</b><button class="btn" data-act="exh" data-d="1" aria-label="More exhaustion">+</button></div></div>
     ${active.length ? `<div class="cond-notes" style="margin-top:10px">${active.map(id => `<p><b>${COND[id][1]}:</b> ${COND[id][2]}</p>`).join('')}${active.includes('charmed') && d.L >= 10 ? '<p class="muted small">Beguiling Defenses makes Cletus immune to Charmed.</p>' : ''}</div>` : ''}
   </div>`;
@@ -756,14 +756,19 @@ function pipsDS(n, act, cls) {
   return `<div class="pips">${h}</div>`;
 }
 
+const CANTRIP_ROLL = { eldritchBlast: 'sparkAtk', viciousMockery: 'vmDmg', chillTouch: 'chillTouchDmg', mindSliver: 'mindSliverDmg', poisonSpray: 'poisonSprayDmg', thunderclap: 'thunderclapDmg', tollTheDead: 'tollTheDeadDmg' };
 function spellCard(id, d, how) {
   const s = SP[id]; if (!s) return '';
   const tags = [];
   if (s.c) tags.push('<span class="tag c">Conc.</span>');
   if (how) tags.push(`<span class="tag">${how}</span>`);
   const lvlTxt = s.l === 0 ? 'Cantrip' : 'Level ' + s.l;
-  return `<div class="spell"><div class="hd"><h3>${esc(s.n)} ${tags.join(' ')}</h3><button class="btn sm ${s.l === 0 ? '' : 'pri'}" data-act="cast" data-id="${id}">${s.l === 0 ? 'Use' : 'Cast'}</button></div>
-    <div class="meta">${lvlTxt} · ${s.t} · ${s.r}</div><p class="desc">${esc(s.s)}</p></div>`;
+  const open = S.openSpells.has(id);
+  let btn = '';
+  if (s.l > 0) btn = `<button class="btn sm pri" data-act="cast" data-id="${id}">Cast</button>`;
+  else if (CANTRIP_ROLL[id]) btn = `<button class="btn sm" data-act="roll" data-k="${CANTRIP_ROLL[id]}">Roll</button>`;
+  return `<div class="spell ${open ? 'open' : ''}"><div class="hd"><button class="sp-name" data-act="spellToggle" data-id="${id}" aria-expanded="${open}"><h3>${esc(s.n)} ${tags.join(' ')}</h3><span class="meta">${lvlTxt} · ${s.t} · ${s.r}</span></button>${btn}</div>
+    <p class="desc">${esc(s.s)}</p></div>`;
 }
 function viewSpells(d) {
   const c = S.c;
@@ -848,7 +853,8 @@ function renderLayer() {
   const active = document.activeElement;
   const activeId = active && active.id && $('#layer').contains(active) ? active.id : null;
   const caret = activeId && active.selectionStart != null ? active.selectionStart : null;
-  $('#layer').innerHTML = `<div class="ov" data-act="ovClose"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(body.title)}"><div class="sh-hd"><h3>${body.title}</h3><button class="btn sm ghost" data-act="close">Close</button></div>${body.html}</div></div>`;
+  $('#layer').innerHTML = `<div class="ov" data-act="ovClose"><div class="sheet${L._shown ? '' : ' anim'}" role="dialog" aria-modal="true" aria-label="${esc(body.title)}"><div class="sh-hd"><h3>${body.title}</h3><button class="btn sm ghost" data-act="close">Close</button></div>${body.html}</div></div>`;
+  L._shown = true;
   const sh = $('#layer .sheet'); if (sh) sh.scrollTop = prevScroll;
   if (activeId) { const el = document.getElementById(activeId); if (el) { el.focus(); if (caret != null && el.setSelectionRange) try { el.setSelectionRange(caret, caret); } catch (e) {} } }
   else if (body.focus) { const el = document.getElementById(body.focus); if (el) el.focus(); }
@@ -924,6 +930,22 @@ function condReminders(entry) {
   if ((entry.k === 'save-str' || entry.k === 'save-dex') && (a.includes('paralyzed') || a.includes('stunned') || a.includes('unconscious'))) out.push('Automatically fail this save');
   return out;
 }
+const QUICK = [['stakeAtk', 'Stake hit'], ['stakeDmg', 'Stake dmg'], ['sparkAtk', 'Spark hit'], ['sparkDmg', 'Spark dmg'], ['conc', 'Concentration'], ['skill-perception', 'Perception'], ['init', 'Initiative'], ['death', 'Death save']];
+const DMG_FOR = { stakeAtk: 'stakeDmg', sparkAtk: 'sparkDmg', smallStake: 'smallStakeDmg', spellAtk: 'otherDmg' };
+function resetRoll(L, k) { L.k = k; S.lastRoll = k; L.d1 = ''; L.d2 = ''; L.vals = {}; L.opts = null; L.mode = 'norm'; L.blessV = ''; L.rerolled = false; }
+function bonusRow(L, withBless) {
+  let h = '<div class="bonus-row">';
+  if (withBless) h += `<button class="chip ${L.bless ? 'on' : ''}" data-act="rollBless" aria-pressed="${!!L.bless}">Bless +1d4</button>`;
+  if (withBless && L.bless) h += `<label class="f inline">d4<input class="in die sm" id="blessV" inputmode="numeric" value="${esc(L.blessV || '')}"></label>`;
+  h += `<label class="f inline">Other bonus<input class="in die sm" id="bonusV" inputmode="text" placeholder="0" value="${esc(L.bonusV || '')}"></label></div>`;
+  return h;
+}
+function extras(L, withBless) {
+  const out = [];
+  if (withBless && L.bless) { const b = parseInt(L.blessV, 10); out.push({ t: 'Bless', v: b >= 1 && b <= 4 ? b : NaN }); }
+  const o = parseInt(L.bonusV, 10); if (!isNaN(o) && o !== 0) out.push({ t: 'Bonus', v: o });
+  return out;
+}
 function layerRoll(L) {
   const d = D();
   const cat = rollCatalog(d);
@@ -931,25 +953,32 @@ function layerRoll(L) {
   L.k = entry.k;
   const groups = {};
   cat.forEach(x => { (groups[x.g] = groups[x.g] || []).push(x); });
-  let h = `<label class="f">What are you rolling?<select class="in" id="rollKind" data-act="rollKind">${Object.keys(groups).map(g => `<optgroup label="${g}">${groups[g].map(x => `<option value="${x.k}" ${x.k === entry.k ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+  let h = `<div class="chips">${QUICK.map(q => `<button class="chip ${q[0] === entry.k ? 'on' : ''}" data-act="rollPick" data-k="${q[0]}">${q[1]}</button>`).join('')}</div>`;
+  h += `<label class="f">Or pick anything<select class="in" id="rollKind" data-act="rollKind">${Object.keys(groups).map(g => `<optgroup label="${g}">${groups[g].map(x => `<option value="${x.k}" ${x.k === entry.k ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
+  const heroicBtn = S.c.heroic ? `<button class="btn full" data-act="heroicReroll">Reroll with Heroic Inspiration</button>` : '';
   if (entry.kind === 'd20') {
     const mode = L.mode || 'norm';
     const rem = condReminders(entry);
     h += `<div class="spread"><span class="lbl">Roll</span><div class="seg" role="group" aria-label="Advantage">${[['dis', 'Disadv.'], ['norm', 'Normal'], ['adv', 'Adv.']].map(m => `<button class="${mode === m[0] ? 'on' : ''}" data-act="rollMode" data-m="${m[0]}">${m[1]}</button>`).join('')}</div></div>`;
     if (rem.length) h += `<p class="small" style="font-weight:600">${rem.map(esc).join(' · ')}</p>`;
     if (entry.note) h += `<p class="small muted">${esc(entry.note)}</p>`;
+    if (L.rerolled) h += '<p class="small" style="font-weight:600">Heroic Inspiration spent: enter the new roll.</p>';
     if (entry.concSave) h += `<label class="f">Damage taken (sets the DC)<input class="in" id="concDmg" inputmode="numeric" value="${esc(L.concDmg || '')}"></label>`;
     h += `<div class="row"><label class="f">d20<input class="in die" id="d1" inputmode="numeric" value="${esc(L.d1 || '')}"></label>${mode !== 'norm' ? `<label class="f">2nd d20<input class="in die" id="d2" inputmode="numeric" value="${esc(L.d2 || '')}"></label>` : ''}</div>`;
+    if (!entry.death) h += bonusRow(L, true);
     const a = parseInt(L.d1, 10), b = parseInt(L.d2, 10);
     let die = null;
     if (mode === 'norm' && a >= 1) die = a;
     if (mode !== 'norm' && a >= 1 && b >= 1) die = mode === 'adv' ? Math.max(a, b) : Math.min(a, b);
-    const modSum = entry.mods.reduce((s, m) => s + m.v, 0);
-    h += `<p class="breakdown">${entry.death ? 'Death saves add nothing.' : 'Add: ' + (entry.mods.length ? entry.mods.map(m => `${m.t} ${sg(m.v)}`).join(', ') + ` = <b>${sg(modSum)}</b>` : 'nothing')}</p>`;
-    if (die != null && die >= 1 && die <= 20) {
+    const ex = entry.death ? [] : extras(L, true);
+    const mods = entry.mods.concat(ex);
+    const exReady = ex.every(m => !isNaN(m.v));
+    const modSum = mods.reduce((s2, m) => s2 + (isNaN(m.v) ? 0 : m.v), 0);
+    h += `<p class="breakdown">${entry.death ? 'Death saves add nothing.' : 'Add: ' + (mods.length ? mods.map(m => `${m.t} ${isNaN(m.v) ? '?' : sg(m.v)}`).join(', ') + ` = <b>${sg(modSum)}</b>` : 'nothing')}</p>`;
+    if (die != null && die >= 1 && die <= 20 && exReady) {
       const total = die + modSum;
       let cls = '', note = '';
-      if (die === 20) { cls = 'crit'; note = entry.g === 'Attacks' ? 'Natural 20: critical hit! Double the damage dice.' : 'Natural 20!'; }
+      if (die === 20) { cls = 'crit'; note = entry.g === 'Attacks' ? 'Natural 20: critical hit!' : 'Natural 20!'; }
       if (die === 1) { cls = 'fail'; note = entry.g === 'Attacks' ? 'Natural 1: automatic miss.' : 'Natural 1.'; }
       if (entry.death) {
         note = die === 20 ? 'Natural 20: you regain 1 HP!' : die === 1 ? 'Natural 1: two failures.' : total >= 10 ? 'Success.' : 'Failure.';
@@ -957,8 +986,10 @@ function layerRoll(L) {
       } else {
         let dcTxt = '';
         if (entry.concSave) { const dmgN = parseInt(L.concDmg, 10) || 0; const dc = Math.min(30, Math.max(10, Math.floor(dmgN / 2))); dcTxt = `<p>DC ${dc}: <b>${total >= dc ? 'Concentration holds' : 'Concentration breaks'}</b></p>`; }
-        h += `<div class="result ${cls}"><span class="lbl">Total</span><span class="total">${total}</span><p class="breakdown">d20 ${die} ${entry.mods.map(m => `${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join(' ')}</p>${note ? `<p><b>${note}</b></p>` : ''}${dcTxt}</div>`;
+        h += `<div class="result ${cls}"><span class="lbl">Total</span><span class="total">${total}</span><p class="breakdown">d20 ${die} ${mods.map(m => `${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join(' ')}</p>${note ? `<p><b>${note}</b></p>` : ''}${dcTxt}</div>`;
+        if (DMG_FOR[entry.k] && die !== 1) h += `<button class="btn pri full" data-act="toDamage" data-crit="${die === 20 ? 1 : 0}">${die === 20 ? 'Roll critical damage' : 'It hits: roll damage'}</button>`;
         if (entry.concSave && c_concBreaks(L, total)) h += `<button class="btn hot full" data-act="endConc">End concentration</button>`;
+        if (!L.rerolled) h += heroicBtn;
       }
     }
   } else {
@@ -976,6 +1007,7 @@ function layerRoll(L) {
     if (toggles.length) h += `<div class="chips">${toggles.map(t => `<button class="chip ${o[t[0]] ? 'on' : ''}" data-act="rollOpt" data-o="${t[0]}" aria-pressed="${!!o[t[0]]}">${t[1]}</button>`).join('')}</div>`;
     if (entry.k === 'hwHeal') h += `<label class="f">Slot level<select class="in" id="hwSlot" data-act="hwSlot">${Array.from({ length: d.slotLvl }, (_, i) => i + 1).map(n => `<option value="${n}" ${o.slot === n ? 'selected' : ''}>${n}${n === 1 ? ' (free cast is level 1)' : ''}</option>`).join('')}</select></label>`;
     if (built.note) h += `<p class="small muted">${esc(built.note)}</p>`;
+    if (L.rerolled) h += '<p class="small" style="font-weight:600">Heroic Inspiration spent: enter the new dice.</p>';
     const vals = L.vals || (L.vals = {});
     h += '<div class="stack">';
     built.groups.forEach(g => {
@@ -984,16 +1016,19 @@ function layerRoll(L) {
       h += `<label class="f"><span>${label} <span class="small muted">${esc(g.type)}</span></span><input class="in die" id="dv-${g.id}" data-dv="${g.id}" inputmode="numeric" placeholder="sum" value="${esc(vals[g.id] || '')}"></label>`;
     });
     h += '</div>';
-    const flatSum = built.flat.reduce((s, m) => s + m.v, 0);
-    h += `<p class="breakdown">Add: ${built.flat.length ? built.flat.map(m => `${m.t} ${sg(m.v)}`).join(', ') : 'nothing'}${o.crit ? ' (only dice double on a crit)' : ''}</p>`;
+    h += bonusRow(L, false);
+    const flat = built.flat.concat(extras(L, false));
+    const flatSum = flat.reduce((s2, m) => s2 + m.v, 0);
+    h += `<p class="breakdown">Add: ${flat.length ? flat.map(m => `${m.t} ${sg(m.v)}`).join(', ') : 'nothing'}${o.crit ? ' (only dice double on a crit)' : ''}</p>`;
     const ready = built.groups.every(g => vals[g.id] !== undefined && vals[g.id] !== '' && !isNaN(parseInt(vals[g.id], 10)));
     if (ready) {
       const parts = built.groups.map(g => ({ n: g.n, v: parseInt(vals[g.id], 10), type: g.type }));
-      const total = parts.reduce((s, p) => s + p.v, 0) + flatSum;
-      h += `<div class="result"><span class="lbl">${built.heal ? 'Healing' : built.temp ? 'Temp HP' : 'Total damage'}</span><span class="total">${total}</span><p class="breakdown">${parts.map(p => `${p.v} ${esc(p.type || p.n)}`).join(' + ')}${built.flat.map(m => ` ${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join('')}</p></div>`;
+      const total = Math.max(0, parts.reduce((s2, p) => s2 + p.v, 0) + flatSum);
+      h += `<div class="result"><span class="lbl">${built.heal ? 'Healing' : built.temp ? 'Temp HP' : 'Total damage'}</span><span class="total">${total}</span><p class="breakdown">${parts.map(p => `${p.v} ${esc(p.type || p.n)}`).join(' + ')}${flat.map(m => ` ${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join('')}</p></div>`;
       if (built.heal && !built.selfHD && entry.k !== 'medic') h += `<button class="btn pri full" data-act="selfHeal" data-v="${total}">Heal Cletus by ${total}</button>`;
       if (built.selfHD) h += `<button class="btn pri full" data-act="lifeHeal" data-v="${total}">Spend a Hit Die and heal ${total}</button>`;
       if (built.temp) h += `<button class="btn pri full" data-act="selfTemp" data-v="${total}">Give Cletus ${total} temp HP</button>`;
+      if (!L.rerolled) h += heroicBtn;
     }
   }
   return { title: 'Roll helper', html: h, focus: L.focus };
@@ -1374,6 +1409,12 @@ const ACTIONS = {
     closeLayer(); commit(); toast('Long Rest done. Fully restored.');
   },
   rollMode: el => { S.layer.mode = el.dataset.m; renderLayer(); },
+  rollPick: el => { resetRoll(S.layer, el.dataset.k); renderLayer(); },
+  rollBless: () => { const L = S.layer; L.bless = !L.bless; renderLayer(); },
+  toDamage: el => { const L = S.layer, k = DMG_FOR[L.k], crit = el.dataset.crit === '1'; resetRoll(L, k); L.opts = { hex: S.c.conc === 'hex', twoHand: true, slot: D().slotLvl, crit }; renderLayer(); const sh = $('#layer .sheet'); if (sh) sh.scrollTop = 0; },
+  heroicReroll: () => { const L = S.layer; S.c.heroic = false; L.d1 = ''; L.d2 = ''; L.vals = {}; L.rerolled = true; commit(); },
+  spellToggle: el => { const id = el.dataset.id; if (S.openSpells.has(id)) S.openSpells.delete(id); else S.openSpells.add(id); render(); },
+  condToggle: () => { S.showConds = !S.showConds; render(); },
   rollOpt: el => { const o = S.layer.opts; o[el.dataset.o] = !o[el.dataset.o]; renderLayer(); },
   deathApply: el => {
     const r = +el.dataset.r, c = S.c;
@@ -1482,7 +1523,7 @@ document.addEventListener('click', ev => {
 });
 document.addEventListener('change', ev => {
   const el = ev.target;
-  if (el.id === 'rollKind') { const L = S.layer; L.k = el.value; S.lastRoll = el.value; L.d1 = ''; L.d2 = ''; L.vals = {}; L.opts = null; L.mode = 'norm'; renderLayer(); return; }
+  if (el.id === 'rollKind') { resetRoll(S.layer, el.value); renderLayer(); return; }
   if (el.id === 'hwSlot') { S.layer.opts.slot = +el.value; renderLayer(); return; }
   if (el.dataset.coin) { const v = Math.max(0, parseInt(el.value, 10) || 0); S.c.coins[el.dataset.coin] = v; commit(); return; }
   if (el.id === 'importFile') { importFile(el.files && el.files[0]); return; }
@@ -1495,7 +1536,7 @@ document.addEventListener('input', ev => {
   if (el.id === 'noteSearch') { S.noteQuery = el.value; render(); return; }
   if (!L) return;
   if (L.type === 'roll') {
-    if (el.id === 'd1') L.d1 = el.value; else if (el.id === 'd2') L.d2 = el.value; else if (el.id === 'concDmg') L.concDmg = el.value;
+    if (el.id === 'd1') L.d1 = el.value; else if (el.id === 'd2') L.d2 = el.value; else if (el.id === 'concDmg') L.concDmg = el.value; else if (el.id === 'blessV') L.blessV = el.value; else if (el.id === 'bonusV') L.bonusV = el.value;
     else if (el.dataset.dv) L.vals[el.dataset.dv] = el.value; else return;
     renderLayer(); return;
   }
