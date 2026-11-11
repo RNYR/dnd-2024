@@ -34,7 +34,15 @@ of *The Hobbit* he has read a thousand times.
 10. **Prepared warlock spells (4):** *Hex* (conc.), *Armor of Agathys* (no conc., cast before fights),
     *Darkness* (conc.; a cloud of black pipe smoke he sees through with Devil's Sight; can't run with Hex),
     *Charm Person* (no conc.; folksy Southern charm, 2 humanoids at a level 2 slot; target knows afterwards).
-11. **Starting level: 3** (campaign starts at level 3).
+11. **Gear:** Hermit package (minus lamp and oil; the pipe has *Light*, and he has Devil's Sight) + Warlock 100 GP option.
+    - Worn: black denim work overalls, rolled-sleeve work shirt, black leather Red Wing boots (traveler's clothes)
+    - Weapons: conjured pact stake (shortsword stats), 3 real wooden stakes, quarterstaff (walking stick)
+    - Focus: corncob pipe (as a wand, 10 GP), pipe tobacco and tamper
+    - Healer's Kit (10 uses), Herbalism Kit, Explorer's Pack, bedroll
+    - 2 vials of Holy Water, steel mirror, crowbar
+    - *The Hobbit* (dog-eared, read a thousand times)
+    - 31 GP
+12. **Starting level: 3** (campaign starts at level 3).
 
 ## Level 3 snapshot (in progress)
 - HP 24 (8 + 2 x 5, +2 CON per level) · AC 15 with Armor of Shadows · Speed 30 · Prof +2
@@ -43,7 +51,7 @@ of *The Hobbit* he has read a thousand times.
 - Archfey: Steps of the Fey 4/Long Rest (free Misty Step + Refreshing or Taunting Step);
   always-prepared Calm Emotions, Faerie Fire, Misty Step, Phantasmal Force, Sleep
 - Magical Cunning (level 2): 1-minute rite recovers half your Pact slots, once per Long Rest
-- Open choices: gear, name and backstory
+- Open choices: name and backstory
 
 ## Original design notes (pre-Barovia, superseded where they conflict with decisions above)
 | Trait | Mechanics |
