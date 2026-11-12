@@ -198,15 +198,19 @@ input.die { width: 76px; text-align: center; font-size: 22px; font-weight: 700; 
 /* Tab bar */
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line);
-  display: grid; grid-template-columns: repeat(6, 1fr);
+  display: grid; grid-template-columns: 1fr 1.2fr 1fr;
   padding: 4px max(6px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
 }
 .tabs button { border: 0; background: transparent; padding: 6px 2px; min-height: 52px; display: grid; justify-items: center; gap: 3px; font-family: var(--label); font-size: 11px; font-weight: 500; letter-spacing: .02em; color: var(--muted); }
 .tabs button svg { width: 22px; height: 22px; }
 .tabs button.on { color: var(--ink); font-weight: 600; }
 .tabs .roll-tab { color: var(--ink); font-weight: 600; }
-.tabs .roll-tab span { display: grid; place-items: center; width: 40px; height: 28px; border-radius: 4px; background: var(--ink); color: var(--paper); }
-.tabs .roll-tab span svg { width: 18px; height: 18px; }
+.tabs .roll-tab span { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 4px; background: var(--ink); color: var(--paper); }
+.tabs .roll-tab span svg { width: 20px; height: 20px; }
+.subnav { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--panel); }
+.subnav button { border: 0; background: transparent; padding: 8px 4px; min-height: 40px; font-weight: 500; color: var(--muted); }
+.subnav button + button { border-left: 1px solid var(--line); }
+.subnav button.on { background: var(--ink); color: var(--paper); font-weight: 600; }
 
 /* Bottom sheet */
 .ov { position: fixed; inset: 0; z-index: 40; background: var(--shade); display: flex; align-items: flex-end; justify-content: center; }
@@ -234,12 +238,9 @@ input.die { width: 76px; text-align: center; font-size: 22px; font-weight: 700; 
 </div>
 
 <nav class="tabs" id="tabs" aria-label="Sections">
-  <button type="button" data-tab="play" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>Play</button>
-  <button type="button" data-tab="spells"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-2 3-5 5-5 9a5 5 0 0 0 10 0c0-4-3-6-5-9z"/><path d="M12 12c-1 1.5-2 2.5-2 4a2 2 0 0 0 4 0c0-1.5-1-2.5-2-4z"/></svg>Spells</button>
+  <button type="button" data-tab="fight" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 3.5 20.5 9.5"/><path d="M4 20l9.5-9.5"/><path d="M17.5 6.5 9 15"/><path d="M6 15l3 3"/></svg>Fight</button>
   <button type="button" class="roll-tab" id="rollTab" data-act="roll" aria-label="Open roll helper"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2v20M3 7l9 5 9-5"/></svg></span>Roll</button>
-  <button type="button" data-tab="bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Bag</button>
-  <button type="button" data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>Notes</button>
-  <button type="button" data-tab="sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Sheet</button>
+  <button type="button" data-tab="cletus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Cletus</button>
 </nav>
 
 <div id="layer"></div>
@@ -512,7 +513,12 @@ const DOC_PATH = 'characters/cletus';
 const LS_KEY = 'cletus-companion-v1';
 const CLIENT = Math.random().toString(36).slice(2, 10);
 const S = { openSpells: new Set(), showConds: false, undo: [], prev: null, coinAmt: '', coinType: 'gp', c: null, tab: 'play', db: null, docRef: null, notes: [], notesReady: false, conn: 'loading', saving: false, dirty: false, pending: null, layer: null, noteQuery: '', noteTag: 'all', dl: null };
-try { const t = localStorage.getItem(LS_KEY + '-tab'); if (t) S.tab = t; } catch (e) {}
+const GROUPS = { fight: [['play', 'Play'], ['spells', 'Spells']], cletus: [['sheet', 'Sheet'], ['bag', 'Pack'], ['notes', 'Notes']] };
+const groupOf = t => GROUPS.fight.some(x => x[0] === t) ? 'fight' : 'cletus';
+S.lastSub = { fight: 'play', cletus: 'sheet' };
+try { const t = localStorage.getItem(LS_KEY + '-tab'); if (t && ['play', 'spells', 'bag', 'notes', 'sheet'].includes(t)) S.tab = t; const ls = JSON.parse(localStorage.getItem(LS_KEY + '-sub') || 'null'); if (ls) Object.assign(S.lastSub, ls); } catch (e) {}
+S.lastSub[groupOf(S.tab)] = S.tab;
+function goTab(t) { S.tab = t; S.lastSub[groupOf(t)] = t; try { localStorage.setItem(LS_KEY + '-tab', t); localStorage.setItem(LS_KEY + '-sub', JSON.stringify(S.lastSub)); } catch (e) {} render(); window.scrollTo(0, 0); }
 
 const $ = sel => document.querySelector(sel);
 const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[ch]));
@@ -706,7 +712,7 @@ function fixHp() { if (S.c && S.c.hp === null) S.c.hp = D().hpMax; }
 
 /* ---------------- Rendering ---------------- */
 function render(keepLayer) {
-  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === S.tab));
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === groupOf(S.tab)));
   const v = $('#view');
   if (!S.c) {
     $('#subtitle').textContent = 'Warlock companion';
@@ -725,7 +731,8 @@ function render(keepLayer) {
   const active = document.activeElement;
   const activeId = active && active.id && v.contains(active) ? active.id : null;
   const caret = activeId && active.selectionStart != null ? active.selectionStart : null;
-  v.innerHTML = html;
+  const g = GROUPS[groupOf(S.tab)];
+  v.innerHTML = `<div class="stack"><div class="subnav" role="tablist" aria-label="${groupOf(S.tab) === 'fight' ? 'Fight' : 'Cletus'}">${g.map(x => `<button type="button" role="tab" data-sub="${x[0]}" class="${S.tab === x[0] ? 'on' : ''}" aria-selected="${S.tab === x[0]}">${x[1]}</button>`).join('')}</div>${html}</div>`;
   if (activeId) { const el = document.getElementById(activeId); if (el) { el.focus(); if (caret != null && el.setSelectionRange) try { el.setSelectionRange(caret, caret); } catch (e) {} } }
   if (S.layer && keepLayer !== false) renderLayer();
 }
@@ -1728,7 +1735,9 @@ const ACTIONS = {
 
 document.addEventListener('click', ev => {
   const tab = ev.target.closest('[data-tab]');
-  if (tab) { S.tab = tab.dataset.tab; try { localStorage.setItem(LS_KEY + '-tab', S.tab); } catch (e) {} render(); window.scrollTo(0, 0); return; }
+  if (tab) { const g = tab.dataset.tab; goTab(groupOf(S.tab) === g ? S.tab : S.lastSub[g]); return; }
+  const sub = ev.target.closest('[data-sub]');
+  if (sub) { goTab(sub.dataset.sub); return; }
   const el = ev.target.closest('[data-act]');
   if (!el) return;
   const act = el.dataset.act;
