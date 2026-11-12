@@ -122,8 +122,9 @@ button.tile { font: inherit; color: inherit; cursor: pointer; }
 .tag { display: inline-block; font-size: 11px; font-family: var(--label); letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; background: var(--chip); color: var(--muted); white-space: nowrap; vertical-align: middle; }
 .tag.c { background: var(--ember); color: var(--ember-ink); }
 .tag.g { background: var(--moss); color: var(--moss-ink); }
-.xp-btn { border: 0; background: transparent; padding: 0; text-align: left; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: start; width: 100%; min-width: 0; }
-.xp-btn > .xp-chev { grid-column: 2; grid-row: 1; width: 22px; height: 22px; border: 1px solid var(--line); border-radius: 4px; display: grid; place-items: center; font-size: 15px; line-height: 1; color: var(--muted); }
+.xp-btn { border: 0; background: transparent; padding: 0; text-align: left; display: block; width: 100%; min-width: 0; }
+.xp-chev { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: 6px; vertical-align: 1px; border: 1px solid var(--line); border-radius: 4px; font-size: 14px; font-weight: 500; line-height: 1; color: var(--muted); }
+.xp-btn h3 { display: inline; }
 .xp-body { display: grid; gap: 8px; font-size: 14px; padding: 8px 0 4px; }
 .xp-body p { max-width: 68ch; }
 .xp-body .tip { border-left: 2px solid var(--ink); padding-left: 10px; }
@@ -773,7 +774,9 @@ function pips(n, used, act, extra) {
 
 function xp(key, head, body, right) {
   const open = S.open.has(key);
-  return `<div class="xp-wrap"><div class="spread" style="align-items:flex-start"><button class="xp-btn" data-act="xp" data-key="${key}" aria-expanded="${open}"><span style="min-width:0">${head}</span><span class="xp-chev" aria-hidden="true">${open ? '−' : '+'}</span></button>${right || ''}</div>${open ? `<div class="xp-body">${body}</div>` : ''}</div>`;
+  const chev = `<span class="xp-chev" aria-hidden="true">${open ? '−' : '+'}</span>`;
+  const h = head.includes('@@') ? head.replace('@@', chev) : head.replace(/(<\/h3>|<\/b>)/, chev + '$1');
+  return `<div class="xp-wrap"><div class="spread" style="align-items:flex-start"><button class="xp-btn" data-act="xp" data-key="${key}" aria-expanded="${open}">${h}</button>${right || ''}</div>${open ? `<div class="xp-body">${body}</div>` : ''}</div>`;
 }
 function pipsU(n, u) { return pips(n, S.c.uses[u] || 0, 'use').replace(/data-act="use"/g, `data-act="use" data-u="${u}"`); }
 function viewPlay(d) {
@@ -841,7 +844,7 @@ function viewPlay(d) {
   rows.push(['Heroic Inspiration', 'Reroll any die · back on a Long Rest', `<button class="pip sq ${c.heroic ? 'full' : 'used'}" data-act="heroic" aria-label="Heroic Inspiration ${c.heroic ? 'available' : 'used'}"></button>`, 'heroic']);
   rows.push(['Healer\'s Kit', 'Battle Medic uses', `<div class="stepper"><button class="btn" data-act="kit" data-d="-1" aria-label="Use one">−</button><b>${c.healerKit}</b><button class="btn" data-act="kit" data-d="1" aria-label="Add one">+</button></div>`, 'kit']);
   rows.push(['Hit Dice', `d8 · ${d.L - c.hdSpent} of ${d.L} left`, pips(d.L, c.hdSpent, 'hd', 'sq'), 'hd']);
-  h += `<div class="card"><h2>Resources</h2><div class="trk">${rows.map(r => { const key = 'res:' + r[3], open = r[3] && S.open.has(key); const name = r[3] ? `<button class="xp-btn" data-act="xp" data-key="${key}" aria-expanded="${open}"><span><b>${r[0]}</b><span class="small muted" style="display:block">${r[1]}</span></span><span class="xp-chev" aria-hidden="true">${open ? '−' : '+'}</span></button>` : `<div class="trk-name"><b>${r[0]}</b><span class="small muted">${r[1]}</span></div>`; return `<div class="trk-row" style="${open ? 'border-bottom:0' : ''}">${name}${r[2]}</div>${open ? `<div class="trk-x xp-body"><p>${esc(RES_X[r[3]])}</p></div>` : ''}`; }).join('')}</div></div>`;
+  h += `<div class="card"><h2>Resources</h2><div class="trk">${rows.map(r => { const key = 'res:' + r[3], open = r[3] && S.open.has(key); const name = r[3] ? `<button class="xp-btn" data-act="xp" data-key="${key}" aria-expanded="${open}"><b>${r[0]}</b><span class="xp-chev" aria-hidden="true">${open ? '−' : '+'}</span><span class="small muted" style="display:block">${r[1]}</span></button>` : `<div class="trk-name"><b>${r[0]}</b><span class="small muted">${r[1]}</span></div>`; return `<div class="trk-row" style="${open ? 'border-bottom:0' : ''}">${name}${r[2]}</div>${open ? `<div class="trk-x xp-body"><p>${esc(RES_X[r[3]])}</p></div>` : ''}`; }).join('')}</div></div>`;
 
   if (down || c.deathS || c.deathF) {
     h += `<div class="card"><h2>Death Saves</h2><div class="trk"><div class="trk-row"><b>Successes</b>${pipsDS(c.deathS, 'dsS', 'dsg')}</div><div class="trk-row"><b>Failures</b>${pipsDS(c.deathF, 'dsF', 'dsx')}</div></div>${d.has('durable') ? '<p class="small muted">Durable: Advantage on death saves.</p>' : ''}</div>`;
@@ -905,7 +908,7 @@ function spellCard(id, d, how) {
   let btn = '';
   if (s.l > 0) btn = `<button class="btn sm pri" data-act="cast" data-id="${id}">Cast</button>`;
   else if (CANTRIP_ROLL[id]) btn = `<button class="btn sm" data-act="roll" data-k="${CANTRIP_ROLL[id]}">Roll</button>`;
-  const head = `<h3>${esc(s.n)} ${tags.join(' ')}</h3><span class="meta small muted" style="display:block">${lvlTxt} · ${s.t} · ${s.r}</span><span class="small muted sp-sum">${esc(s.s)}</span>`;
+  const head = `<h3>${esc(s.n)}@@ ${tags.join(' ')}</h3><span class="meta small muted" style="display:block">${lvlTxt} · ${s.t} · ${s.r}</span><span class="small muted sp-sum">${esc(s.s)}</span>`;
   const live = spellLive(id, d);
   let body = `<dl class="facts"><dt>Level</dt><dd>${lvlTxt}</dd><dt>Casting time</dt><dd>${s.t === 'Bonus' ? 'Bonus Action' : s.t}</dd><dt>Range</dt><dd>${s.r}</dd>${x ? `<dt>Components</dt><dd>${esc(x[0])}</dd><dt>Duration</dt><dd>${esc(x[1])}</dd>` : `<dt>Concentration</dt><dd>${s.c ? 'Yes' : 'No'}</dd>`}</dl>`;
   body += `<p>${esc(x ? x[2] : s.s)}</p>`;
@@ -930,7 +933,7 @@ function viewBag() {
   const c = S.c;
   let h = `<div class="card"><h2>Coins</h2><div class="coins">${['cp', 'sp', 'ep', 'gp', 'pp'].map(k => `<label class="coin"><span class="lbl">${k.toUpperCase()}</span><input id="coin-${k}" inputmode="numeric" data-coin="${k}" value="${c.coins[k]}" aria-label="${k.toUpperCase()}"></label>`).join('')}</div>
     <div class="row" style="margin-top:10px;flex-wrap:nowrap"><input class="in" id="coinAmt" inputmode="numeric" placeholder="Amount" value="${esc(S.coinAmt)}" aria-label="Amount" style="flex:1;min-width:0"><select class="in" id="coinType" aria-label="Coin" style="width:auto">${['cp', 'sp', 'ep', 'gp', 'pp'].map(k => `<option value="${k}" ${S.coinType === k ? 'selected' : ''}>${k.toUpperCase()}</option>`).join('')}</select><button class="btn" data-act="coinMove" data-d="1">Gain</button><button class="btn" data-act="coinMove" data-d="-1">Spend</button></div></div>`;
-  h += `<div class="card"><h2>Items <button class="btn sm pri" data-act="item" data-id="">Add item</button></h2>${c.inventory.length ? c.inventory.map(it => { const open = S.open.has('it:' + it.id); return `<div class="item"><button class="xp-btn" style="grid-column:1" data-act="xp" data-key="it:${it.id}" aria-expanded="${open}"><span><span class="nm">${esc(it.name)}</span><span class="note" style="display:block">${esc(it.note || '')}</span></span><span class="xp-chev" aria-hidden="true">${open ? '−' : '+'}</span></button>${open ? `<div class="xp-body" style="grid-column:1 / -1;grid-row:3">${ITEM_X[it.id] ? `<p>${esc(ITEM_X[it.id])}</p>` : ''}<button class="btn sm" data-act="item" data-id="${it.id}" style="justify-self:start">Edit item</button></div>` : ''}<div class="stepper"><button class="btn" data-act="qty" data-id="${it.id}" data-d="-1" aria-label="One less ${esc(it.name)}">−</button><b>${it.qty}</b><button class="btn" data-act="qty" data-id="${it.id}" data-d="1" aria-label="One more ${esc(it.name)}">+</button></div></div>`; }).join('') : '<p class="muted">The bag is empty.</p>'}</div>`;
+  h += `<div class="card"><h2>Items <button class="btn sm pri" data-act="item" data-id="">Add item</button></h2>${c.inventory.length ? c.inventory.map(it => { const open = S.open.has('it:' + it.id); return `<div class="item"><button class="xp-btn" style="grid-column:1" data-act="xp" data-key="it:${it.id}" aria-expanded="${open}"><span class="nm">${esc(it.name)}</span><span class="xp-chev" aria-hidden="true">${open ? '−' : '+'}</span><span class="note" style="display:block">${esc(it.note || '')}</span></button>${open ? `<div class="xp-body" style="grid-column:1 / -1;grid-row:3">${ITEM_X[it.id] ? `<p>${esc(ITEM_X[it.id])}</p>` : ''}<button class="btn sm" data-act="item" data-id="${it.id}" style="justify-self:start">Edit item</button></div>` : ''}<div class="stepper"><button class="btn" data-act="qty" data-id="${it.id}" data-d="-1" aria-label="One less ${esc(it.name)}">−</button><b>${it.qty}</b><button class="btn" data-act="qty" data-id="${it.id}" data-d="1" aria-label="One more ${esc(it.name)}">+</button></div></div>`; }).join('') : '<p class="muted">The bag is empty.</p>'}</div>`;
   return `<div class="stack">${h}</div>`;
 }
 
@@ -996,17 +999,17 @@ function viewSheet(d) {
     <div class="card"><h2>Skills</h2><div class="lst">${SKILLS.map(sk => { const s = d.skill(sk[0]); return `<button data-act="roll" data-k="skill-${sk[0]}"><i class="dot ${s.e ? 'e' : s.p ? 'p' : ''}"></i><span>${sk[1]} <span class="small muted">${sk[2].toUpperCase()}</span></span><b class="num">${sg(s.v)}</b></button>`; }).join('')}</div></div></div>`;
   h += `<div class="card"><h2>Level</h2><div class="spread"><div><b>Level ${d.L}</b> <span class="muted small">Warlock (Archfey)</span></div><div class="row">${c.history.length ? '<button class="btn sm" data-act="undoLevel">Undo last level-up</button>' : ''}<button class="btn pri" data-act="levelUp" ${d.L >= 20 ? 'disabled' : ''}>${d.L >= 20 ? 'Max level' : 'Level up to ' + (d.L + 1)}</button></div></div></div>`;
   const invByName = Object.fromEntries(INV_ROWS.map(r => [r[1], r[0]]));
-  h += `<div class="card"><h2>Features</h2><p class="small muted">Tap any feature for the full explanation.</p>${featureList(d).map(f => { const fx = FEATURE_X[f[0]], ix = invByName[f[0]] ? INV_X[invByName[f[0]]] : null; const x = fx || ix; const body = x ? `<p>${esc(x[0])}</p>${x[1] ? `<p class="tip">${esc(x[1])}</p>` : ''}` : `<p>${esc(f[1])}</p>`; return `<div class="feat">${xp('ft:' + f[0], `<h3>${esc(f[0])} ${f[2] ? `<span class="tag">${f[2]}</span>` : ''}</h3><span class="small muted" style="display:block">${esc(f[1])}</span>`, body)}</div>`; }).join('')}</div>`;
+  h += `<div class="card"><h2>Features</h2><p class="small muted">Tap any feature for the full explanation.</p>${featureList(d).map(f => { const fx = FEATURE_X[f[0]], ix = invByName[f[0]] ? INV_X[invByName[f[0]]] : null; const x = fx || ix; const body = x ? `<p>${esc(x[0])}</p>${x[1] ? `<p class="tip">${esc(x[1])}</p>` : ''}` : `<p>${esc(f[1])}</p>`; return `<div class="feat">${xp('ft:' + f[0], `<h3>${esc(f[0])}@@ ${f[2] ? `<span class="tag">${f[2]}</span>` : ''}</h3><span class="small muted" style="display:block">${esc(f[1])}</span>`, body)}</div>`; }).join('')}</div>`;
   const featRows = c.feats.map(f => {
     const o = ORIGIN_FEATS[f.id], g = GF[f.id];
     const name = o ? o[0] : g ? g.n : f.id === 'asi' ? 'Ability Score Improvement' : f.id;
     const desc = o ? o[1] : g ? g.s : '';
     const full = FEAT_X[f.id] || (g ? g.s + (g.pre && g.pre !== 'None' ? ' Prerequisite: ' + g.pre + '.' : '') : desc) || (f.note || '');
-    return `<div class="feat">${xp('feat:' + f.id + ':' + (f.src || ''), `<h3>${esc(name)}${f.choice ? ' (' + esc(f.choice) + ')' : ''} <span class="tag">${esc(f.src || '')}</span></h3>${desc ? `<span class="small muted" style="display:block">${esc(desc)}</span>` : ''}${f.note ? `<span class="small muted" style="display:block">${esc(f.note)}</span>` : ''}`, `<p>${esc(full)}</p>`)}</div>`;
+    return `<div class="feat">${xp('feat:' + f.id + ':' + (f.src || ''), `<h3>${esc(name)}${f.choice ? ' (' + esc(f.choice) + ')' : ''}@@ <span class="tag">${esc(f.src || '')}</span></h3>${desc ? `<span class="small muted" style="display:block">${esc(desc)}</span>` : ''}${f.note ? `<span class="small muted" style="display:block">${esc(f.note)}</span>` : ''}`, `<p>${esc(full)}</p>`)}</div>`;
   }).join('');
   const boon = c.boon ? `<div class="feat"><h3>${esc(BOONS[c.boon.id][0])} <span class="tag">Epic Boon</span></h3><p>${esc(BOONS[c.boon.id][1])}</p></div>` : '';
   h += `<div class="card"><h2>Feats &amp; Traits</h2>${featRows}${boon}
-    <div class="feat">${xp('feat:human', '<h3>Human <span class="tag">Species</span></h3><span class="small muted" style="display:block">Resourceful, Skillful, Versatile</span>', `<p>${esc(HUMAN_X)}</p>`)}</div></div>`;
+    <div class="feat">${xp('feat:human', '<h3>Human@@ <span class="tag">Species</span></h3><span class="small muted" style="display:block">Resourceful, Skillful, Versatile</span>', `<p>${esc(HUMAN_X)}</p>`)}</div></div>`;
   h += `<div class="card"><h2>Rules basics</h2><p class="small muted">New to D&amp;D? Tap a topic.</p>${GLOSS.map((g, i) => `<div class="feat">${xp('gl:' + i, `<h3>${esc(g[0])}</h3>`, `<p>${esc(g[1])}</p>`)}</div>`).join('')}</div>`;
   h += `<div class="card"><h2>Proficiencies</h2><div class="stack small"><p><b>Armor:</b> Light armor</p><p><b>Weapons:</b> Simple weapons, plus his pact weapon (Trident stats)</p><p><b>Tools:</b> Herbalism Kit</p><p><b>Languages:</b> ${esc(c.languages.join(', '))}</p></div></div>`;
   h += `<div class="card"><h2>Cletus</h2><div class="prose"><p>Ex-farmer and logger from the Big Thicket of East Texas. Ginger man-bun, a belt-length beard tied in knots, black denim overalls, Red Wing boots, sleeves rolled over thick forearms. A pipe and a long stake, both carved from the heartwood of the oak he felled.</p><p>His patron, the Old Lady of the Thicket: <i>"For every tree you felled, you'll fell a thing that ought not be standing."</i></p></div></div>`;
