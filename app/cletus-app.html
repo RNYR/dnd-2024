@@ -82,6 +82,7 @@ p { margin: 0; }
 .vit { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
 .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 8px; text-align: center; display: grid; gap: 2px; align-content: center; }
 .tile .lbl, .lbl { font-family: var(--label); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button.tile { font: inherit; color: inherit; cursor: pointer; }
 .tile .big { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .tile .sub { font-size: 12px; color: var(--muted); }
 .hp-tile { border-color: var(--ink); }
@@ -227,7 +228,7 @@ input.die { width: 76px; text-align: center; font-size: 22px; font-weight: 700; 
 <div class="wrap" id="app">
   <div class="topbar">
     <div class="brand">Cletus<small id="subtitle">Loading character…</small></div>
-    <div class="status" id="status"><i></i><span>Connecting…</span></div>
+    <div class="row" style="gap:10px;justify-content:flex-end;flex-wrap:nowrap"><button class="btn sm" id="undoBtn" type="button" data-act="undoLast" hidden>Undo</button><div class="status" id="status"><i></i><span>Connecting…</span></div></div>
   </div>
   <div id="view"><div class="card empty"><p>Loading Cletus…</p></div></div>
 </div>
@@ -497,12 +498,20 @@ const CONDITIONS = [
   ['unconscious', 'Unconscious', 'Incapacitated and Prone; drop what you hold; hits within 5 ft are critical.']
 ];
 const COND = Object.fromEntries(CONDITIONS.map(c => [c[0], c]));
+// Damaging cantrips other than Eldritch Blast: die, type, attack roll or save
+const CANTRIP_DMG = { chillTouch: { die: 10, type: 'Necrotic', atk: true }, mindSliver: { die: 6, type: 'Psychic', save: 'Int' }, poisonSpray: { die: 12, type: 'Poison', atk: true }, thunderclap: { die: 6, type: 'Thunder', save: 'Con' }, tollTheDead: { die: 12, type: 'Necrotic', save: 'Wis' } };
+// Spell durations (for the Active spells list). Instantaneous spells are left out.
+const DUR = { armorAgathys: '1 hour', charmPerson: '1 hour', comprehendLanguages: '1 hour', expeditiousRetreat: '10 minutes', protEvilGood: '10 minutes', unseenServant: '1 hour', witchBolt: '1 minute', cloudDaggers: '1 minute', crownMadness: '1 minute', darkness: '10 minutes', enthrall: '1 minute', holdPerson: '1 minute', invisibility: '1 hour', mindSpike: '1 hour', mirrorImage: '1 minute', rayEnfeeblement: '1 minute', spiderClimb: '1 hour', suggestion: '8 hours', fear: '1 minute', fly: '10 minutes', gaseousForm: '1 hour', hungerHadar: '1 minute', hypnoticPattern: '1 minute', magicCircle: '1 hour', majorImage: '10 minutes', summonFey: '1 hour', summonUndead: '1 hour', tongues: '1 hour', vampiricTouch: '1 minute', banishment: '1 minute', charmMonster: '1 hour', summonAberration: '1 hour', holdMonster: '1 minute', jallarzi: '1 minute', mislead: '1 hour', scrying: '10 minutes', calmEmotions: '1 minute', faerieFire: '1 minute', phantasmalForce: '1 minute', sleep: '1 minute', blink: '1 minute', dominateBeast: '1 minute', greaterInvisibility: '1 minute', dominatePerson: '1 minute', seeming: '8 hours', eyebite: '1 minute', massSuggestion: '24 hours', summonFiend: '1 hour', trueSeeing: '1 hour', etherealness: '8 hours', forcecage: '1 hour', dominateMonster: '1 hour', glibness: '1 hour', foresight: '8 hours', weird: '1 minute', truePolymorph: '1 hour', arcaneGate: '10 minutes', gate: '1 minute' };
+function durText(id, lv) { if (id === 'hex') return lv >= 5 ? '24 hours' : lv >= 3 ? '8 hours' : lv === 2 ? '4 hours' : '1 hour'; return DUR[id] || ''; }
+// Invocations that other invocations depend on (can't be swapped out while those are known)
+const INV_DEPENDENTS = { pactBlade: ['thirstingBlade', 'eldritchSmite', 'lifedrinker'], thirstingBlade: ['devouringBlade'] };
+const SKILL_FEATS = { observant: ['insight', 'investigation', 'perception'], keenMind: ['arcana', 'history', 'investigation', 'nature', 'religion'] };
 
 /* ---------------- State ---------------- */
 const DOC_PATH = 'characters/cletus';
 const LS_KEY = 'cletus-companion-v1';
 const CLIENT = Math.random().toString(36).slice(2, 10);
-const S = { openSpells: new Set(), showConds: false, c: null, tab: 'play', db: null, docRef: null, notes: [], notesReady: false, conn: 'loading', saving: false, dirty: false, pending: null, layer: null, noteQuery: '', noteTag: 'all', dl: null };
+const S = { openSpells: new Set(), showConds: false, undo: [], prev: null, coinAmt: '', coinType: 'gp', c: null, tab: 'play', db: null, docRef: null, notes: [], notesReady: false, conn: 'loading', saving: false, dirty: false, pending: null, layer: null, noteQuery: '', noteTag: 'all', dl: null };
 try { const t = localStorage.getItem(LS_KEY + '-tab'); if (t) S.tab = t; } catch (e) {}
 
 const $ = sel => document.querySelector(sel);
@@ -520,14 +529,15 @@ function originFeats() {
   invChoice('lessonsFirstOnes').forEach(f => f && list.push(f));
   return list;
 }
+function featChoice(id) { const f = (S.c.feats || []).find(x => x.id === id); return f ? f.choice : ''; }
 function D() {
   const c = S.c, L = c.level;
   const m = Object.fromEntries(AB.map(a => [a, mod(c.abilities[a])]));
   const pb = Math.ceil(L / 4) + 1;
   const feats = originFeats();
-  const tough = feats.includes('tough');
+  const has = id => feats.includes(id);
   const exh = c.exhaustion || 0;
-  const hpMax = (c.hpRolls || []).reduce((a, b) => a + b, 0) + L * m.con + (tough ? 2 * L : 0) + (c.boon && c.boon.id === 'fortitude' ? 40 : 0);
+  const hpMax = (c.hpRolls || []).reduce((a, b) => a + b, 0) + L * m.con + (has('tough') ? 2 * L : 0) + (c.boon && c.boon.id === 'fortitude' ? 40 : 0);
   const allSkills = c.boon && c.boon.id === 'skill';
   const skill = id => {
     const sk = SKN[id]; const p = allSkills || (c.skillProf || []).includes(id); const e = (c.expertise || []).includes(id);
@@ -536,23 +546,28 @@ function D() {
   const save = a => { const p = (c.saveProf || []).includes(a); return { v: m[a] + (p ? pb : 0), p }; };
   const beams = L >= 17 ? 4 : L >= 11 ? 3 : L >= 5 ? 2 : 1;
   const cantripDice = L >= 17 ? 4 : L >= 11 ? 3 : L >= 5 ? 2 : 1;
-  const attacks = hasInv('devouringBlade') ? 3 : hasInv('thirstingBlade') ? 2 : 1;
+  const blade = hasInv('pactBlade');
+  const attacks = !blade ? 1 : hasInv('devouringBlade') ? 3 : hasInv('thirstingBlade') ? 2 : 1;
   return {
-    L, m, pb, hpMax, exh, skill, save, beams, cantripDice, attacks,
+    L, m, pb, hpMax, exh, skill, save, beams, cantripDice, attacks, blade, has, feats,
+    eb: (c.cantrips || []).includes('eldritchBlast'),
     ac: (c.mageArmor ? 13 : 10) + m.dex,
-    init: m.dex + (feats.includes('alert') ? pb : 0),
-    speed: Math.max(0, 30 + (c.boon && c.boon.id === 'speed' ? 30 : 0) - 5 * exh),
+    init: m.dex + (has('alert') ? pb : 0),
+    speed: Math.max(0, 30 + (has('speedy') ? 10 : 0) + (c.boon && c.boon.id === 'speed' ? 30 : 0) - 5 * exh),
     dc: 8 + m.cha + pb, atk: m.cha + pb,
     slots: SLOTS[L], slotLvl: SLOT_LVL[L],
     steps: L >= 3 ? Math.max(1, m.cha) : 0,
     passive: 10 + skill('perception').v,
-    feats
+    concAdv: hasInv('eldritchMind') || has('warCaster'),
+    dead: c.deathF >= 3 || exh >= 6,
+    stable: c.hp <= 0 && c.deathS >= 3 && c.deathF < 3
   };
 }
 function alwaysPrepared(L) {
   const out = ['healingWord'];
   Object.keys(FEY_SPELLS).forEach(k => { if (L >= +k) out.push(...FEY_SPELLS[k]); });
   if (L >= 9) out.push('contactOtherPlane');
+  if (S.c && originFeats().includes('shadowTouched') && !out.includes('invisibility')) out.push('invisibility');
   return out;
 }
 
@@ -566,13 +581,17 @@ function mirrorLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S.c))
 function readLocal() { try { const v = localStorage.getItem(LS_KEY); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
 
 let saveTimer = null;
+function resetUndo() { S.undo = []; S.prev = S.c ? clone(S.c) : null; }
 function commit(opts) {
-  // Called after every state change.
+  // Called after every state change. Keeps an undo stack of earlier states.
+  opts = opts || {};
+  if (!opts.noUndo && S.prev) { S.undo.push(S.prev); if (S.undo.length > 30) S.undo.shift(); }
   S.c.updated = Date.now();
   S.c.client = CLIENT;
+  S.prev = clone(S.c);
   mirrorLocal();
   S.dirty = true;
-  render(opts && opts.keepLayer);
+  render(opts.keepLayer);
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flush, 700);
 }
@@ -583,11 +602,18 @@ async function flush() {
   setStatus('warn', 'Saving…');
   try {
     await S.docRef.set(clone(S.c));
+    S.retryMs = 0;
     setStatus('ok', 'Saved');
   } catch (e) {
     S.dirty = true;
-    if (e && e.code === 'unavailable') { setTimeout(flush, 1500 + Math.random() * 1000); setStatus('warn', 'Retrying save…'); }
-    else setStatus('warn', 'Not saved to cloud (kept on this device)');
+    const code = e && e.code;
+    if (code === 'invalid_argument' || code === 'quota_exceeded' || code === 'revoked' || code === 'not_granted') {
+      setStatus('warn', 'Cloud refused the save: kept on this device');
+    } else {
+      S.retryMs = Math.min(30000, (S.retryMs || 1000) * 2);
+      clearTimeout(saveTimer); saveTimer = setTimeout(flush, S.retryMs + Math.random() * 500);
+      setStatus('warn', 'Offline: will keep trying to save');
+    }
   } finally { S.saving = false; }
 }
 
@@ -628,7 +654,15 @@ async function boot() {
     if (snap.metadata.hasPendingWrites) return;
     if (data.client === CLIENT && S.c) { if (!snap.metadata.fromCache) setStatus('ok', 'Saved'); return; }
     if (S.dirty && S.c) return; // local edits win until they are written
-    S.c = upgrade(clone(data)); S.conn = 'cloud';
+    if (!S.c) {
+      const local = readLocal();
+      if (local && (local.updated || 0) > (data.updated || 0)) {
+        // This device has newer changes than the cloud (a save failed last time): keep them and upload.
+        S.c = upgrade(local); S.conn = 'cloud'; S.dirty = true; resetUndo(); render(true);
+        setStatus('warn', 'Uploading newer changes from this device…'); flush(); return;
+      }
+    } else if ((S.c.updated || 0) > (data.updated || 0)) { S.dirty = true; flush(); return; }
+    S.c = upgrade(clone(data)); S.conn = 'cloud'; resetUndo();
     mirrorLocal();
     if (!snap.metadata.fromCache) setStatus('ok', 'Synced');
     render(true);
@@ -644,18 +678,31 @@ async function boot() {
   S.notesCol = notesCol;
   notesCol.onSnapshot(qs => {
     S.notes = qs.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (b.updated || 0) - (a.updated || 0));
-    S.notesReady = true;
+    S.notesReady = true; S.notesError = false;
     if (S.tab === 'notes' && !S.layer) render();
+    syncPending();
   }, () => { S.notesReady = true; S.notesError = true; if (S.tab === 'notes') render(); });
 }
 function upgrade(c) {
-  c.uses = Object.assign({ steps: 0, cunning: 0, freeHW: 0, beguile: 0, patron: 0, arc6: 0, arc7: 0, arc8: 0, arc9: 0 }, c.uses || {});
-  ['invocations', 'cantrips', 'prepared', 'feats', 'asi', 'saveProf', 'skillProf', 'expertise', 'languages', 'inventory', 'history', 'conditions', 'hpRolls'].forEach(k => { if (!Array.isArray(c[k])) c[k] = []; });
+  c.uses = Object.assign({ steps: 0, cunning: 0, freeHW: 0, beguile: 0, patron: 0, arc6: 0, arc7: 0, arc8: 0, arc9: 0, luck: 0, feyT: 0, feyT2: 0, shadowT: 0, shadowT2: 0 }, c.uses || {});
+  ['invocations', 'cantrips', 'prepared', 'feats', 'asi', 'saveProf', 'skillProf', 'expertise', 'languages', 'inventory', 'history', 'conditions', 'hpRolls', 'effects'].forEach(k => { if (!Array.isArray(c[k])) c[k] = []; });
   c.coins = Object.assign({ cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }, c.coins || {});
-  c.arcanum = c.arcanum || {};
-  c.exhaustion = c.exhaustion || 0;
+  Object.keys(c.coins).forEach(k => { const v = +c.coins[k]; c.coins[k] = isFinite(v) && v >= 0 ? Math.floor(v) : 0; });
+  c.abilities = Object.assign({ str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, c.abilities || {});
+  AB.forEach(a => { const v = +c.abilities[a]; c.abilities[a] = isFinite(v) ? Math.max(1, Math.min(30, Math.round(v))) : 10; });
+  c.level = Math.max(1, Math.min(20, Math.round(+c.level) || 1));
+  c.hpRolls = c.hpRolls.map(x => +x).filter(x => isFinite(x));
+  while (c.hpRolls.length < c.level) c.hpRolls.push(c.hpRolls.length ? 5 : 8);
+  const num = (k, def) => { const v = +c[k]; c[k] = isFinite(v) && v >= 0 ? v : def; };
+  num('temp', 0); num('agathys', 0); num('hdSpent', 0); num('deathS', 0); num('deathF', 0); num('slotsUsed', 0); num('healerKit', 10); num('exhaustion', 0);
+  if (!isFinite(+c.hp) || c.hp === null || c.hp === '') c.hp = null; else c.hp = Math.max(0, +c.hp);
+  if (typeof c.heroic !== 'boolean') c.heroic = true;
+  if (typeof c.mageArmor !== 'boolean') c.mageArmor = true;
+  c.arcanum = c.arcanum && typeof c.arcanum === 'object' ? c.arcanum : {};
+  c.turn = c.turn && typeof c.turn === 'object' ? c.turn : {};
   return c;
 }
+function fixHp() { if (S.c && S.c.hp === null) S.c.hp = D().hpMax; }
 
 /* ---------------- Rendering ---------------- */
 function render(keepLayer) {
@@ -669,6 +716,9 @@ function render(keepLayer) {
     v.innerHTML = '<div class="card empty">' + msg + '</div>';
     return;
   }
+  fixHp();
+  if (!S.prev) S.prev = clone(S.c);
+  const ub = $('#undoBtn'); if (ub) ub.hidden = !S.undo.length;
   const d = D();
   $('#subtitle').textContent = 'Level ' + d.L + ' Archfey Warlock';
   const html = { play: viewPlay, spells: viewSpells, bag: viewBag, notes: viewNotes, sheet: viewSheet }[S.tab](d);
@@ -689,20 +739,22 @@ function pips(n, used, act, extra) {
   return `<div class="pips">${h}</div>`;
 }
 
+function pipsU(n, u) { return pips(n, S.c.uses[u] || 0, 'use').replace(/data-act="use"/g, `data-act="use" data-u="${u}"`); }
 function viewPlay(d) {
   const c = S.c;
   const hpPct = Math.max(0, Math.min(100, Math.round(c.hp / d.hpMax * 100)));
   const conc = c.conc ? SP[c.conc] : null;
+  const concEff = conc ? c.effects.find(e => e.sid === c.conc) : null;
   const down = c.hp <= 0;
   let h = '';
-  if (down) {
-    h += `<div class="banner down"><div><b>Down at 0 HP.</b> <span class="small">Roll a death save at the start of each turn.</span></div><button class="btn sm" data-act="roll" data-k="death">Roll</button></div>`;
-  }
+  if (d.dead) h += `<div class="banner down"><div><b>Cletus has died.</b> <span class="small">${c.exhaustion >= 6 ? 'Exhaustion level 6.' : 'Three failed death saves.'} If that was a mis-tap, tap Undo at the top.</span></div></div>`;
+  else if (d.stable) h += `<div class="banner down"><div><b>Stable at 0 HP.</b> <span class="small">No more death saves. He regains 1 HP after 1d4 hours, or wakes as soon as he's healed.</span></div></div>`;
+  else if (down) h += `<div class="banner down"><div><b>Down at 0 HP.</b> <span class="small">Roll a death save at the start of each turn.</span></div><button class="btn sm" data-act="roll" data-k="death">Roll</button></div>`;
   h += `<div class="vit">
     <div class="tile hp-tile"><span class="lbl">Hit Points</span><span class="big">${c.hp}<span class="sub"> / ${d.hpMax}</span></span>
       <div class="hp-bar"><b class="${hpPct <= 33 ? 'low' : ''}" style="width:${hpPct}%"></b></div>
       <span class="sub">${c.temp ? 'Temp HP ' + c.temp + (c.agathys && c.temp > 0 ? ' · Agathys ' + c.agathys + ' cold' : '') : 'No temp HP'}</span></div>
-    <div class="tile"><span class="lbl">AC</span><span class="big">${d.ac}</span><span class="sub">${c.mageArmor ? 'Mage Armor' : 'No armor'}</span></div>
+    <button class="tile" data-act="mageArmorToggle" aria-label="Armor Class ${d.ac}. Tap to mark Mage Armor ${c.mageArmor ? 'down' : 'up'}"><span class="lbl">AC</span><span class="big">${d.ac}</span><span class="sub">${c.mageArmor ? 'Mage Armor' : 'No armor'}</span></button>
     <div class="tile"><span class="lbl">Speed</span><span class="big">${d.speed}</span><span class="sub">Init ${sg(d.init)}</span></div>
   </div>
   <div class="hp-actions">
@@ -710,40 +762,58 @@ function viewPlay(d) {
     <button class="btn pri" data-act="hp" data-mode="heal">Heal</button>
     <button class="btn" data-act="hp" data-mode="temp">Temp HP</button>
   </div>`;
-  if (conc) h += `<div class="banner"><div><span class="lbl">Concentrating</span><br><b>${esc(conc.n)}</b> <span class="small muted">Taking damage: Con save, DC 10 or half the damage.</span></div><button class="btn sm" data-act="endConc">End</button></div>`;
+  if (conc) h += `<div class="banner"><div><span class="lbl">Concentrating</span><br><b>${esc(conc.n)}${concEff && concEff.target ? ' on ' + esc(concEff.target) : ''}</b> <span class="small muted">${concEff && concEff.dur ? esc(concEff.dur) + ' · ' : ''}Taking damage: Con save, DC 10 or half the damage${d.concAdv ? ', with Advantage' : ''}.</span></div><button class="btn sm" data-act="endConc">End</button></div>`;
   if (!c.mageArmor) h += `<div class="banner"><div class="small">Mage Armor is down. Armor of Shadows recasts it for free.</div><button class="btn sm" data-act="mageArmor">Cast</button></div>`;
 
-  const atkRows = [
-    ['stakeAtk', 'Heartwood Stake', `${sg(d.atk)} to hit · 1d8+${d.m.cha} (1d10 two-handed)` + (d.attacks > 1 ? ` · ${d.attacks} attacks` : ''), 'stakeDmg'],
-    ['sparkAtk', 'Backdraft Spark', `${sg(d.atk)} to hit · ${d.beams} beam${d.beams > 1 ? 's' : ''} · 1d10${invChoice('agonizingBlast').includes('eldritchBlast') ? '+' + d.m.cha : ''} Force`, 'sparkDmg'],
-    ['vm', 'Vicious Mockery', `DC ${d.dc} Wis · ${d.cantripDice}d6 Psychic`, 'vmDmg']
-  ];
-  h += `<div class="card"><h2>Attacks</h2>${atkRows.map(r => `<div class="atk"><div class="nm">${r[1]}</div><div class="meta">${r[2]}</div><div class="acts">${r[0] === 'vm' ? '' : `<button class="btn sm" data-act="roll" data-k="${r[0]}">Hit</button>`}<button class="btn sm pri" data-act="roll" data-k="${r[3]}">Dmg</button></div></div>`).join('')}</div>`;
+  const atkRows = [];
+  if (d.blade) atkRows.push(['stakeAtk', 'Heartwood Stake', `${sg(d.atk)} to hit · 1d8+${d.m.cha} (1d10 two-handed)` + (d.attacks > 1 ? ` · ${d.attacks} attacks` : ''), 'stakeDmg']);
+  if (d.eb) atkRows.push(['sparkAtk', 'Backdraft Spark', `${sg(d.atk)} to hit · ${d.beams} beam${d.beams > 1 ? 's' : ''} · 1d10${invChoice('agonizingBlast').includes('eldritchBlast') ? '+' + d.m.cha : ''} Force`, 'sparkDmg']);
+  if (c.cantrips.includes('trueStrike') && d.blade) atkRows.push(['trueStrikeAtk', 'True Strike (stake)', `${sg(d.atk)} to hit · stake damage${d.L >= 5 ? ` + ${d.cantripDice - 1}d6 Radiant` : ''}`, 'trueStrikeDmg']);
+  atkRows.push([null, 'Vicious Mockery', `DC ${d.dc} Wis · ${d.cantripDice}d6 Psychic`, 'vmDmg']);
+  c.cantrips.forEach(id => { const cd = CANTRIP_DMG[id]; if (!cd) return; const ag = invChoice('agonizingBlast').includes(id) ? '+' + d.m.cha : ''; atkRows.push([cd.atk ? 'spellAtk' : null, SP[id].n, `${cd.atk ? sg(d.atk) + ' to hit' : 'DC ' + d.dc + ' ' + cd.save} · ${d.cantripDice}d${id === 'tollTheDead' ? '8/d12' : cd.die}${ag} ${cd.type}`, id + 'Dmg']); });
+  h += `<div class="card"><h2>Attacks</h2>${atkRows.map(r => `<div class="atk"><div class="nm">${esc(r[1])}</div><div class="meta">${r[2]}</div><div class="acts">${r[0] ? `<button class="btn sm" data-act="roll" data-k="${r[0]}">Hit</button>` : ''}<button class="btn sm pri" data-act="roll" data-k="${r[3]}">Dmg</button></div></div>`).join('')}</div>`;
+
+  // This turn: once-per-turn and reaction reminders
+  const t = c.turn || {};
+  const turnChips = [['action', 'Action'], ['bonus', 'Bonus Action'], ['reaction', 'Reaction']];
+  if (hasInv('eldritchSmite')) turnChips.push(['smite', 'Eldritch Smite']);
+  if (hasInv('lifedrinker')) turnChips.push(['life', 'Lifedrinker']);
+  const reacts = [];
+  if (d.L >= 6) reacts.push('Misty Escape (when damaged)');
+  if (d.L >= 10) reacts.push('Beguiling Defenses (when hit)');
+  if (c.prepared.includes('hellishRebuke')) reacts.push('Hellish Rebuke');
+  if (c.prepared.includes('counterspell')) reacts.push('Counterspell');
+  reacts.push('opportunity attack');
+  h += `<div class="card"><h2>This turn <button class="btn sm" data-act="newTurn">New turn</button></h2><div class="chips">${turnChips.map(x => `<button class="chip ${t[x[0]] ? 'on' : ''}" data-act="turn" data-k="${x[0]}" aria-pressed="${!!t[x[0]]}">${x[1]}${t[x[0]] ? ' used' : ''}</button>`).join('')}</div><p class="small muted" style="margin-top:8px">${d.attacks > 1 ? `Attack action: ${d.attacks} stake attacks. ` : ''}${hasInv('eldritchSmite') || hasInv('lifedrinker') ? 'Smite and Lifedrinker: once per turn each. ' : ''}Reactions: ${reacts.join(', ')}.</p></div>`;
+
+  const effs = c.effects.filter(e => e.sid !== c.conc);
+  if (effs.length) h += `<div class="card"><h2>Active spells</h2><div class="trk">${effs.map(e => `<div class="trk-row"><div class="trk-name"><b>${esc(SP[e.sid] ? SP[e.sid].n : e.sid)}</b><span class="small muted">${e.target ? 'On ' + esc(e.target) + ' · ' : ''}${esc(e.dur || '')}</span></div><button class="btn sm" data-act="endEffect" data-sid="${e.sid}">End</button></div>`).join('')}</div></div>`;
 
   // Resources
   const rows = [];
   rows.push(['Pact slots', `Level ${d.slotLvl} · back on a Short Rest`, pips(d.slots, c.slotsUsed, 'slot')]);
-  if (d.steps) rows.push(['Steps of the Fey', 'Free Misty Step · Long Rest', pips(d.steps, c.uses.steps, 'use', '') .replace(/data-act="use"/g, 'data-act="use" data-u="steps"')]);
-  if (d.L >= 2) rows.push(['Magical Cunning', '1-minute rite: regain ' + Math.ceil(d.slots / 2) + ' slot' + (Math.ceil(d.slots / 2) > 1 ? 's' : '') + ' · Long Rest', `<button class="btn sm" data-act="cunning" ${c.uses.cunning ? 'disabled' : ''}>${c.uses.cunning ? 'Used' : 'Use'}</button>`]);
-  rows.push(['Free Healing Word', 'Magic Initiate · Long Rest', pips(1, c.uses.freeHW, 'use').replace(/data-act="use"/g, 'data-act="use" data-u="freeHW"')]);
-  if (d.L >= 10) rows.push(['Beguiling Defenses', 'Reaction: halve a hit, psychic back · Long Rest or a Pact slot', pips(1, c.uses.beguile, 'use').replace(/data-act="use"/g, 'data-act="use" data-u="beguile"')]);
-  if (d.L >= 9) rows.push(['Contact Patron', 'Free Contact Other Plane · Long Rest', pips(1, c.uses.patron, 'use').replace(/data-act="use"/g, 'data-act="use" data-u="patron"')]);
-  Object.keys(ARCANUM).forEach(k => { const lvl = ARCANUM[k]; const sid = c.arcanum[lvl]; if (sid && SP[sid]) rows.push([`Arcanum: ${SP[sid].n}`, `Level ${lvl} · Long Rest`, pips(1, c.uses['arc' + lvl], 'use').replace(/data-act="use"/g, `data-act="use" data-u="arc${lvl}"`)]); });
+  if (d.steps) rows.push(['Steps of the Fey', 'Free Misty Step · Long Rest', pipsU(d.steps, 'steps')]);
+  if (d.L >= 2) { const back = d.L >= 20 ? c.slotsUsed : Math.min(c.slotsUsed, Math.ceil(d.slots / 2)); rows.push(['Magical Cunning', (c.uses.cunning ? 'Used' : c.slotsUsed ? `1-minute rite: regain ${back} slot${back === 1 ? '' : 's'}` : 'Nothing to regain yet') + ' · Long Rest', `<button class="btn sm" data-act="cunning" ${c.uses.cunning || !c.slotsUsed ? 'disabled' : ''}>${c.uses.cunning ? 'Used' : 'Use'}</button>`]); }
+  rows.push(['Free Healing Word', 'Magic Initiate · Long Rest', pipsU(1, 'freeHW')]);
+  if (d.has('feyTouched')) { rows.push(['Fey Touched: Misty Step', 'Free cast · Long Rest', pipsU(1, 'feyT')]); rows.push([`Fey Touched: ${esc(featChoice('feyTouched') || 'chosen spell')}`, 'Free cast · Long Rest', pipsU(1, 'feyT2')]); }
+  if (d.has('shadowTouched')) { rows.push(['Shadow Touched: Invisibility', 'Free cast · Long Rest', pipsU(1, 'shadowT')]); rows.push([`Shadow Touched: ${esc(featChoice('shadowTouched') || 'chosen spell')}`, 'Free cast · Long Rest', pipsU(1, 'shadowT2')]); }
+  if (d.has('lucky')) rows.push(['Luck Points', 'Lucky: Advantage or impose Disadvantage · Long Rest', pipsU(d.pb, 'luck')]);
+  if (d.L >= 10) rows.push(['Beguiling Defenses', 'Reaction: halve a hit, psychic back · Long Rest or a Pact slot', pipsU(1, 'beguile')]);
+  if (d.L >= 9) rows.push(['Contact Patron', 'Free Contact Other Plane · Long Rest', pipsU(1, 'patron')]);
+  Object.keys(ARCANUM).forEach(k => { const lvl = ARCANUM[k]; const sid = c.arcanum[lvl]; if (sid && SP[sid]) rows.push([`Arcanum: ${SP[sid].n}`, `Level ${lvl} · Long Rest`, pipsU(1, 'arc' + lvl)]); });
   rows.push(['Heroic Inspiration', 'Reroll any die · back on a Long Rest', `<button class="pip sq ${c.heroic ? 'full' : 'used'}" data-act="heroic" aria-label="Heroic Inspiration ${c.heroic ? 'available' : 'used'}"></button>`]);
   rows.push(['Healer\'s Kit', 'Battle Medic uses', `<div class="stepper"><button class="btn" data-act="kit" data-d="-1" aria-label="Use one">−</button><b>${c.healerKit}</b><button class="btn" data-act="kit" data-d="1" aria-label="Add one">+</button></div>`]);
   rows.push(['Hit Dice', `d8 · ${d.L - c.hdSpent} of ${d.L} left`, pips(d.L, c.hdSpent, 'hd', 'sq')]);
   h += `<div class="card"><h2>Resources</h2><div class="trk">${rows.map(r => `<div class="trk-row"><div class="trk-name"><b>${r[0]}</b><span class="small muted">${r[1]}</span></div>${r[2]}</div>`).join('')}</div></div>`;
 
-  // Death saves
   if (down || c.deathS || c.deathF) {
-    h += `<div class="card"><h2>Death Saves</h2><div class="trk"><div class="trk-row"><b>Successes</b>${pipsDS(c.deathS, 'dsS', 'dsg')}</div><div class="trk-row"><b>Failures</b>${pipsDS(c.deathF, 'dsF', 'dsx')}</div></div></div>`;
+    h += `<div class="card"><h2>Death Saves</h2><div class="trk"><div class="trk-row"><b>Successes</b>${pipsDS(c.deathS, 'dsS', 'dsg')}</div><div class="trk-row"><b>Failures</b>${pipsDS(c.deathF, 'dsF', 'dsx')}</div></div>${d.has('durable') ? '<p class="small muted">Durable: Advantage on death saves.</p>' : ''}</div>`;
   }
 
-  // Conditions
   const active = c.conditions || [];
   const condList = S.showConds ? CONDITIONS : CONDITIONS.filter(x => active.includes(x[0]));
   h += `<div class="card"><h2>Conditions <button class="btn sm" data-act="condToggle" aria-expanded="${S.showConds}">${S.showConds ? 'Done' : 'Add'}</button></h2><div class="chips">${condList.length ? condList.map(x => `<button class="chip ${active.includes(x[0]) ? 'on' : ''}" data-act="cond" data-id="${x[0]}" aria-pressed="${active.includes(x[0])}">${x[1]}${!S.showConds ? ' ×' : ''}</button>`).join('') : '<span class="muted small">None. Tap Add to mark one.</span>'}</div>
-    <div class="spread" style="margin-top:10px"><div><b>Exhaustion</b> <span class="small muted">${c.exhaustion ? `−${2 * c.exhaustion} to d20 tests, −${5 * c.exhaustion} ft speed` : 'None'}</span></div><div class="stepper"><button class="btn" data-act="exh" data-d="-1" aria-label="Less exhaustion">−</button><b>${c.exhaustion}</b><button class="btn" data-act="exh" data-d="1" aria-label="More exhaustion">+</button></div></div>
+    <div class="spread" style="margin-top:10px"><div><b>Exhaustion</b> <span class="small muted">${c.exhaustion ? (c.exhaustion >= 6 ? 'Level 6: death' : `−${2 * c.exhaustion} to d20 tests, −${5 * c.exhaustion} ft speed`) : 'None'}</span></div><div class="stepper"><button class="btn" data-act="exh" data-d="-1" aria-label="Less exhaustion">−</button><b>${c.exhaustion}</b><button class="btn" data-act="exh" data-d="1" aria-label="More exhaustion">+</button></div></div>
     ${active.length ? `<div class="cond-notes" style="margin-top:10px">${active.map(id => `<p><b>${COND[id][1]}:</b> ${COND[id][2]}</p>`).join('')}${active.includes('charmed') && d.L >= 10 ? '<p class="muted small">Beguiling Defenses makes Cletus immune to Charmed.</p>' : ''}</div>` : ''}
   </div>`;
 
@@ -756,7 +826,7 @@ function pipsDS(n, act, cls) {
   return `<div class="pips">${h}</div>`;
 }
 
-const CANTRIP_ROLL = { eldritchBlast: 'sparkAtk', viciousMockery: 'vmDmg', chillTouch: 'chillTouchDmg', mindSliver: 'mindSliverDmg', poisonSpray: 'poisonSprayDmg', thunderclap: 'thunderclapDmg', tollTheDead: 'tollTheDeadDmg' };
+const CANTRIP_ROLL = { eldritchBlast: 'sparkAtk', viciousMockery: 'vmDmg', trueStrike: 'trueStrikeAtk', chillTouch: 'chillTouchDmg', mindSliver: 'mindSliverDmg', poisonSpray: 'poisonSprayDmg', thunderclap: 'thunderclapDmg', tollTheDead: 'tollTheDeadDmg' };
 function spellCard(id, d, how) {
   const s = SP[id]; if (!s) return '';
   const tags = [];
@@ -784,23 +854,48 @@ function viewSpells(d) {
 
 function viewBag() {
   const c = S.c;
-  let h = `<div class="card"><h2>Coins</h2><div class="coins">${['cp', 'sp', 'ep', 'gp', 'pp'].map(k => `<label class="coin"><span class="lbl">${k.toUpperCase()}</span><input id="coin-${k}" inputmode="numeric" data-coin="${k}" value="${c.coins[k]}" aria-label="${k.toUpperCase()}"></label>`).join('')}</div></div>`;
+  let h = `<div class="card"><h2>Coins</h2><div class="coins">${['cp', 'sp', 'ep', 'gp', 'pp'].map(k => `<label class="coin"><span class="lbl">${k.toUpperCase()}</span><input id="coin-${k}" inputmode="numeric" data-coin="${k}" value="${c.coins[k]}" aria-label="${k.toUpperCase()}"></label>`).join('')}</div>
+    <div class="row" style="margin-top:10px;flex-wrap:nowrap"><input class="in" id="coinAmt" inputmode="numeric" placeholder="Amount" value="${esc(S.coinAmt)}" aria-label="Amount" style="flex:1;min-width:0"><select class="in" id="coinType" aria-label="Coin" style="width:auto">${['cp', 'sp', 'ep', 'gp', 'pp'].map(k => `<option value="${k}" ${S.coinType === k ? 'selected' : ''}>${k.toUpperCase()}</option>`).join('')}</select><button class="btn" data-act="coinMove" data-d="1">Gain</button><button class="btn" data-act="coinMove" data-d="-1">Spend</button></div></div>`;
   h += `<div class="card"><h2>Items <button class="btn sm pri" data-act="item" data-id="">Add item</button></h2>${c.inventory.length ? c.inventory.map(it => `<div class="item"><button class="nm" style="border:0;background:none;text-align:left;padding:0" data-act="item" data-id="${it.id}">${esc(it.name)}</button><div class="note">${esc(it.note || '')}</div><div class="stepper"><button class="btn" data-act="qty" data-id="${it.id}" data-d="-1" aria-label="One less ${esc(it.name)}">−</button><b>${it.qty}</b><button class="btn" data-act="qty" data-id="${it.id}" data-d="1" aria-label="One more ${esc(it.name)}">+</button></div></div>`).join('') : '<p class="muted">The bag is empty.</p>'}</div>`;
   return `<div class="stack">${h}</div>`;
 }
 
 const NOTE_TAGS = ['NPC', 'Place', 'Clue', 'Quest', 'Loot', 'Session'];
+const NOTES_LS = LS_KEY + '-notes';
+function readPending() { try { const v = JSON.parse(localStorage.getItem(NOTES_LS) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+function writePending(list) { try { localStorage.setItem(NOTES_LS, JSON.stringify(list)); } catch (e) {} }
+function allNotes() {
+  const pend = readPending();
+  const replaced = new Set(pend.map(p => p.cloudId).filter(Boolean));
+  return pend.map(p => Object.assign({}, p, { pending: true })).concat(S.notes.filter(n => !replaced.has(n.id))).sort((a, b) => (b.updated || 0) - (a.updated || 0));
+}
+async function syncPending() {
+  if (!S.notesCol || S.syncingNotes) return;
+  const pend = readPending(); if (!pend.length) return;
+  S.syncingNotes = true;
+  for (const p of pend) {
+    try {
+      const body = { title: p.title || '', tag: p.tag || 'NPC', body: p.body || '', created: p.created || Date.now(), updated: p.updated || Date.now() };
+      await S.notesCol.doc(p.cloudId || p.id).set(body);
+      writePending(readPending().filter(x => x.id !== p.id));
+    } catch (e) { break; }
+  }
+  S.syncingNotes = false;
+  if (S.tab === 'notes' && !S.layer) render();
+}
 function viewNotes() {
   const q = S.noteQuery.trim().toLowerCase();
-  const list = S.notes.filter(n => (S.noteTag === 'all' || n.tag === S.noteTag) && (!q || (n.title + ' ' + n.body).toLowerCase().includes(q)));
+  const notes = allNotes();
+  const list = notes.filter(n => (S.noteTag === 'all' || n.tag === S.noteTag) && (!q || ((n.title || '') + ' ' + (n.body || '')).toLowerCase().includes(q)));
   let h = `<div class="row"><input class="in" id="noteSearch" placeholder="Search notes" value="${esc(S.noteQuery)}" style="flex:1;min-width:0" aria-label="Search notes"><button class="btn pri" data-act="note" data-id="">New note</button></div>`;
   h += `<div class="chips">${['all'].concat(NOTE_TAGS).map(t => `<button class="chip ${S.noteTag === t ? 'on' : ''}" data-act="noteTag" data-t="${t}">${t === 'all' ? 'All' : t}</button>`).join('')}</div>`;
-  if (!S.db && S.conn !== 'cloud') h += '<div class="card"><p class="muted">Notes are stored in the cloud and need claude.ai to load.</p></div>';
-  else if (!S.notesReady) h += '<div class="card"><p class="muted">Loading notes…</p></div>';
-  else if (S.notesError) h += '<div class="card"><p class="muted">Notes can\'t be reached right now.</p></div>';
-  else if (!S.notes.length) h += '<div class="card empty"><h3>No notes yet</h3><p class="muted">Jot down NPCs, places and clues from Barovia. Tap "New note" to start.</p></div>';
+  const pendingCount = notes.filter(n => n.pending).length;
+  if (!S.notesCol || S.notesError) h += `<div class="card"><p class="small muted">Offline: notes are kept on this device and sync when the app reaches the cloud again.</p></div>`;
+  else if (pendingCount) h += `<div class="card"><p class="small muted">${pendingCount} note${pendingCount > 1 ? 's' : ''} waiting to sync.</p></div>`;
+  if (S.notesCol && !S.notesReady && !pendingCount) h += '<div class="card"><p class="muted">Loading notes…</p></div>';
+  else if (!notes.length) h += '<div class="card empty"><h3>No notes yet</h3><p class="muted">Jot down NPCs, places and clues from Barovia. Tap "New note" to start.</p></div>';
   else if (!list.length) h += '<div class="card"><p class="muted">No notes match.</p></div>';
-  else h += list.map(n => `<button class="note-card" data-act="note" data-id="${n.id}"><div class="spread"><b>${esc(n.title || 'Untitled')}</b><span class="tag">${esc(n.tag || 'Note')}</span></div><div class="body">${esc(n.body || '')}</div><span class="small muted">${new Date(n.updated || n.created || Date.now()).toLocaleDateString()}</span></button>`).join('');
+  else h += list.map(n => `<button class="note-card" data-act="note" data-id="${n.id}"><div class="spread"><b>${esc(n.title || 'Untitled')}</b><span class="row" style="gap:4px">${n.pending ? '<span class="tag">Not synced</span>' : ''}<span class="tag">${esc(n.tag || 'Note')}</span></span></div><div class="body">${esc(n.body || '')}</div><span class="small muted">${new Date(n.updated || n.created || Date.now()).toLocaleDateString()}</span></button>`).join('');
   return `<div class="stack">${h}</div>`;
 }
 
@@ -846,8 +941,13 @@ function viewSheet(d) {
 function openLayer(layer) { S.layer = layer; renderLayer(); }
 function closeLayer() { S.layer = null; $('#layer').innerHTML = ''; }
 function renderLayer() {
+  if (S.inLayerRender) return; // a blur fired by the redraw itself must not redraw again
+  S.inLayerRender = true;
+  try { renderLayerNow(); } finally { S.inLayerRender = false; }
+}
+function renderLayerNow() {
   const L = S.layer; if (!L) { $('#layer').innerHTML = ''; return; }
-  const fn = { hp: layerHP, roll: layerRoll, cast: layerCast, item: layerItem, note: layerNote, short: layerShort, long: layerLong, level: layerLevel, undo: layerUndo, msg: layerMsg }[L.type];
+  const fn = { hp: layerHP, roll: layerRoll, cast: layerCast, item: layerItem, note: layerNote, short: layerShort, long: layerLong, level: layerLevel, undo: layerUndo, msg: layerMsg, importConfirm: layerImport }[L.type];
   const body = fn(L);
   const prevScroll = $('#layer .sheet') ? $('#layer .sheet').scrollTop : 0;
   const active = document.activeElement;
@@ -866,7 +966,7 @@ function layerHP(L) {
   const titles = { dmg: 'Take damage', heal: 'Heal', temp: 'Temporary HP' };
   const c = S.c;
   let extra = '';
-  if (L.mode === 'dmg') extra = `<p class="small muted">Temp HP (${c.temp}) absorbs damage first.${c.conc ? ' You\'re concentrating on ' + esc(SP[c.conc].n) + ': a Con save follows.' : ''}</p>`;
+  if (L.mode === 'dmg') extra = `<p class="small muted">Temp HP (${c.temp}) absorbs damage first.${c.conc ? ' You\'re concentrating on ' + esc(SP[c.conc].n) + ': a Con save follows.' : ''}</p>` + (c.hp <= 0 ? `<div class="chips"><button class="chip ${L.crit ? 'on' : ''}" data-act="hpCrit" aria-pressed="${!!L.crit}">From a critical hit (2 failures)</button></div><p class="small muted">At 0 HP any damage is a failed death save. Damage equal to his HP maximum kills him outright.</p>` : '');
   if (L.mode === 'temp') extra = '<p class="small muted">Temp HP don\'t stack: you keep whichever is higher.</p>';
   return {
     title: titles[L.mode], focus: 'hpAmt',
@@ -880,37 +980,44 @@ function rollCatalog(d) {
   const c = S.c, list = [];
   const pen = d.exh ? [{ t: 'Exhaustion', v: -2 * d.exh }] : [];
   const d20 = (k, g, n, mods, extra) => list.push(Object.assign({ k, g, n, kind: 'd20', mods: mods.concat(pen) }, extra || {}));
-  const dmg = (k, g, n, build) => list.push({ k, g, n, kind: 'dmg', build });
-  d20('stakeAtk', 'Attacks', 'Heartwood Stake: attack', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }], { note: d.attacks > 1 ? `Attack action: ${d.attacks} attacks.` : '' });
-  d20('sparkAtk', 'Attacks', 'Backdraft Spark: attack (per beam)', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }], { note: d.beams > 1 ? `${d.beams} beams: roll each separately.` : '' });
+  const dmg = (k, g, n, build, extra) => list.push(Object.assign({ k, g, n, kind: 'dmg', build }, extra || {}));
+  const agon = id => invChoice('agonizingBlast').includes(id) ? [{ t: 'Agonizing (CHA)', v: d.m.cha }] : [];
+  if (d.blade) d20('stakeAtk', 'Attacks', 'Heartwood Stake: attack', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }], { note: d.attacks > 1 ? `Attack action: ${d.attacks} attacks.` : '' });
+  if (d.eb) d20('sparkAtk', 'Attacks', 'Backdraft Spark: attack (per beam)', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }], { note: d.beams > 1 ? `${d.beams} beams: roll each separately.` : '' });
+  if (d.blade && c.cantrips.includes('trueStrike')) d20('trueStrikeAtk', 'Attacks', 'True Strike: attack', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }]);
   d20('smallStake', 'Attacks', 'Wooden stake (dagger): attack', [{ t: 'DEX', v: d.m.dex }, { t: 'Prof.', v: d.pb }]);
-  d20('spellAtk', 'Attacks', 'Other spell attack', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }]);
-  dmg('stakeDmg', 'Damage', 'Heartwood Stake: damage', o => {
+  d20('spellAtk', 'Attacks', 'Spell attack (Chill Touch, Poison Spray…)', [{ t: 'CHA', v: d.m.cha }, { t: 'Prof.', v: d.pb }]);
+  if (d.blade) dmg('stakeDmg', 'Damage', 'Heartwood Stake: damage', o => {
     const g = [{ id: 'w', n: o.twoHand ? '1d10 stake' : '1d8 stake', die: o.twoHand ? 10 : 8, count: 1, type: 'Piercing / Radiant / Psychic' }];
-    if (o.hex) g.push({ id: 'hex', n: '1d6 Hex', die: 6, count: 1, type: 'Necrotic' });
     if (o.smite) g.push({ id: 'smite', n: `${1 + d.slotLvl}d8 Eldritch Smite`, die: 8, count: 1 + d.slotLvl, type: 'Force' });
     if (o.life) g.push({ id: 'life', n: '1d6 Lifedrinker', die: 6, count: 1, type: 'Necrotic / Psychic / Radiant' });
     return { groups: g, flat: [{ t: 'CHA', v: d.m.cha }] };
-  });
-  dmg('sparkDmg', 'Damage', 'Backdraft Spark: damage (per beam)', o => {
-    const g = [{ id: 'eb', n: '1d10 spark', die: 10, count: 1, type: 'Force' }];
-    if (o.hex) g.push({ id: 'hex', n: '1d6 Hex', die: 6, count: 1, type: 'Necrotic' });
-    return { groups: g, flat: invChoice('agonizingBlast').includes('eldritchBlast') ? [{ t: 'Agonizing (CHA)', v: d.m.cha }] : [] };
-  });
+  }, { atkRoll: true, weapon: true });
+  if (d.blade && c.cantrips.includes('trueStrike')) dmg('trueStrikeDmg', 'Damage', 'True Strike: damage', o => {
+    const g = [{ id: 'w', n: o.twoHand ? '1d10 stake' : '1d8 stake', die: o.twoHand ? 10 : 8, count: 1, type: 'Radiant or weapon type' }];
+    if (d.L >= 5) g.push({ id: 'ts', n: `${d.cantripDice - 1}d6 True Strike`, die: 6, count: d.cantripDice - 1, type: 'Radiant' });
+    return { groups: g, flat: [{ t: 'CHA', v: d.m.cha }] };
+  }, { atkRoll: true, weapon: true });
+  if (d.eb) dmg('sparkDmg', 'Damage', 'Backdraft Spark: damage (per beam)', () => ({ groups: [{ id: 'eb', n: '1d10 spark', die: 10, count: 1, type: 'Force' }], flat: agon('eldritchBlast') }), { atkRoll: true });
   dmg('vmDmg', 'Damage', 'Vicious Mockery: damage', () => ({ groups: [{ id: 'vm', n: `${d.cantripDice}d6`, die: 6, count: d.cantripDice, type: 'Psychic' }], flat: [], note: 'Target also has Disadvantage on its next attack roll.' }));
-  const cd = { chillTouch: [10, 'Necrotic'], mindSliver: [6, 'Psychic'], poisonSpray: [12, 'Poison'], thunderclap: [6, 'Thunder'], tollTheDead: [12, 'Necrotic (d8 if unhurt)'] };
-  c.cantrips.forEach(id => { if (cd[id]) dmg(id + 'Dmg', 'Damage', SP[id].n + ': damage', () => ({ groups: [{ id, n: `${d.cantripDice}d${cd[id][0]}`, die: cd[id][0], count: d.cantripDice, type: cd[id][1] }], flat: [] })); });
-  dmg('smallStakeDmg', 'Damage', 'Wooden stake: damage', () => ({ groups: [{ id: 'd', n: '1d4 stake', die: 4, count: 1, type: 'Piercing' }], flat: [{ t: 'DEX', v: d.m.dex }] }));
+  c.cantrips.forEach(id => {
+    const cd = CANTRIP_DMG[id]; if (!cd) return;
+    dmg(id + 'Dmg', 'Damage', SP[id].n + ': damage', o => {
+      const die = id === 'tollTheDead' ? (o.hurt === false ? 8 : 12) : cd.die;
+      return { groups: [{ id, n: `${d.cantripDice}d${die}`, die, count: d.cantripDice, type: cd.type }], flat: agon(id) };
+    }, { atkRoll: !!cd.atk });
+  });
+  dmg('smallStakeDmg', 'Damage', 'Wooden stake: damage', () => ({ groups: [{ id: 'd', n: '1d4 stake', die: 4, count: 1, type: 'Piercing' }], flat: [{ t: 'DEX', v: d.m.dex }] }), { atkRoll: true });
   dmg('hexDmg', 'Damage', 'Hex only', () => ({ groups: [{ id: 'hex', n: '1d6 Hex', die: 6, count: 1, type: 'Necrotic' }], flat: [] }));
   dmg('holyWater', 'Damage', 'Holy Water (DC ' + (8 + d.m.dex + d.pb) + ' Dex)', () => ({ groups: [{ id: 'hw', n: '2d8', die: 8, count: 2, type: 'Radiant (Fiends and Undead only)' }], flat: [] }));
   dmg('otherDmg', 'Damage', 'Other damage (enter dice total)', () => ({ groups: [{ id: 'x', n: 'Dice total', die: 0, count: 1, type: '' }], flat: [] }));
-  dmg('hwHeal', 'Healing', 'Healing Word', o => ({ heal: true, groups: [{ id: 'hw', n: `${2 * (o.slot || 1)}d4`, die: 4, count: 2 * (o.slot || 1), type: 'Healing' }], flat: [{ t: 'CHA', v: d.m.cha }] }));
-  dmg('medic', 'Healing', 'Battle Medic (Healer feat)', () => ({ heal: true, groups: [{ id: 'hd', n: 'Patient\'s Hit Die', die: 0, count: 1, type: 'Healing' }], flat: [{ t: 'Prof.', v: d.pb }], note: 'Uses one Healer\'s Kit charge. The patient spends one of their Hit Dice.' }));
+  dmg('hwHeal', 'Healing', 'Healing Word', o => ({ heal: true, groups: [{ id: 'hw', n: `${2 * (o.slot || 1)}d4`, die: 4, count: 2 * (o.slot || 1), type: 'Healing' }], flat: [{ t: 'CHA', v: d.m.cha }], note: 'Healer feat: reroll any 1s.' }));
+  dmg('medic', 'Healing', 'Battle Medic (Healer feat)', () => ({ heal: true, medic: true, groups: [{ id: 'hd', n: 'Patient\'s Hit Die', die: 0, count: 1, type: 'Healing' }], flat: [{ t: 'Prof.', v: d.pb }], note: `The patient spends one of their Hit Dice; reroll a 1. Kit charges left: ${c.healerKit}.` }));
   dmg('refresh', 'Healing', 'Refreshing Step (temp HP)', () => ({ temp: true, groups: [{ id: 'r', n: '1d10', die: 10, count: 1, type: 'Temp HP' }], flat: [] }));
   if (hasInv('lifedrinker')) dmg('lifeHeal', 'Healing', 'Lifedrinker: spend a Hit Die', () => ({ heal: true, selfHD: true, groups: [{ id: 'l', n: '1d8 Hit Die', die: 8, count: 1, type: 'Healing' }], flat: [{ t: 'CON', v: d.m.con }] }));
   d20('init', 'Common', 'Initiative', [{ t: 'Initiative', v: d.init }]);
-  d20('death', 'Common', 'Death saving throw', [], { death: true });
-  d20('conc', 'Common', 'Concentration (Con save)', [{ t: 'CON save', v: d.save('con').v }], { concSave: true, note: hasInv('eldritchMind') ? 'Eldritch Mind: roll with Advantage.' : '' });
+  d20('death', 'Common', 'Death saving throw', [], { death: true, note: d.has('durable') ? 'Durable: roll with Advantage.' : '' });
+  d20('conc', 'Common', 'Concentration (Con save)', [{ t: 'CON save', v: d.save('con').v }], { concSave: true, note: d.concAdv ? `Roll with Advantage (${[hasInv('eldritchMind') ? 'Eldritch Mind' : '', d.has('warCaster') ? 'War Caster' : ''].filter(Boolean).join(', ')}).` : '' });
   AB.forEach(a => d20('save-' + a, 'Saving throws', ABN[a] + ' save', [{ t: ABN[a].slice(0, 3).toUpperCase(), v: d.m[a] }].concat(d.save(a).p ? [{ t: 'Prof.', v: d.pb }] : [])));
   AB.forEach(a => d20('check-' + a, 'Ability checks', ABN[a] + ' check', [{ t: ABN[a].slice(0, 3).toUpperCase(), v: d.m[a] }]));
   SKILLS.forEach(sk => { const s = d.skill(sk[0]); d20('skill-' + sk[0], 'Skills', sk[1], [{ t: sk[2].toUpperCase(), v: d.m[sk[2]] }].concat(s.e ? [{ t: 'Expertise', v: 2 * d.pb }] : s.p ? [{ t: 'Prof.', v: d.pb }] : [])); });
@@ -931,8 +1038,8 @@ function condReminders(entry) {
   return out;
 }
 const QUICK = [['stakeAtk', 'Stake hit'], ['stakeDmg', 'Stake dmg'], ['sparkAtk', 'Spark hit'], ['sparkDmg', 'Spark dmg'], ['conc', 'Concentration'], ['skill-perception', 'Perception'], ['init', 'Initiative'], ['death', 'Death save']];
-const DMG_FOR = { stakeAtk: 'stakeDmg', sparkAtk: 'sparkDmg', smallStake: 'smallStakeDmg', spellAtk: 'otherDmg' };
-function resetRoll(L, k) { L.k = k; S.lastRoll = k; L.d1 = ''; L.d2 = ''; L.vals = {}; L.opts = null; L.mode = 'norm'; L.blessV = ''; L.rerolled = false; }
+const DMG_FOR = { stakeAtk: 'stakeDmg', sparkAtk: 'sparkDmg', trueStrikeAtk: 'trueStrikeDmg', smallStake: 'smallStakeDmg', spellAtk: 'otherDmg' };
+function resetRoll(L, k) { L.k = k; S.lastRoll = k; L.d1 = ''; L.d2 = ''; L.vals = {}; L.opts = null; L.mode = 'norm'; L.blessV = ''; L.rerolled = false; L.smiteSpent = false; L.kitUsed = false; }
 function bonusRow(L, withBless) {
   let h = '<div class="bonus-row">';
   if (withBless) h += `<button class="chip ${L.bless ? 'on' : ''}" data-act="rollBless" aria-pressed="${!!L.bless}">Bless +1d4</button>`;
@@ -953,7 +1060,7 @@ function layerRoll(L) {
   L.k = entry.k;
   const groups = {};
   cat.forEach(x => { (groups[x.g] = groups[x.g] || []).push(x); });
-  let h = `<div class="chips">${QUICK.map(q => `<button class="chip ${q[0] === entry.k ? 'on' : ''}" data-act="rollPick" data-k="${q[0]}">${q[1]}</button>`).join('')}</div>`;
+  let h = `<div class="chips">${QUICK.filter(q => cat.some(x => x.k === q[0])).map(q => `<button class="chip ${q[0] === entry.k ? 'on' : ''}" data-act="rollPick" data-k="${q[0]}">${q[1]}</button>`).join('')}</div>`;
   h += `<label class="f">Or pick anything<select class="in" id="rollKind" data-act="rollKind">${Object.keys(groups).map(g => `<optgroup label="${g}">${groups[g].map(x => `<option value="${x.k}" ${x.k === entry.k ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
   const heroicBtn = S.c.heroic ? `<button class="btn full" data-act="heroicReroll">Reroll with Heroic Inspiration</button>` : '';
   if (entry.kind === 'd20') {
@@ -974,7 +1081,7 @@ function layerRoll(L) {
     const mods = entry.mods.concat(ex);
     const exReady = ex.every(m => !isNaN(m.v));
     const modSum = mods.reduce((s2, m) => s2 + (isNaN(m.v) ? 0 : m.v), 0);
-    h += `<p class="breakdown">${entry.death ? 'Death saves add nothing.' : 'Add: ' + (mods.length ? mods.map(m => `${m.t} ${isNaN(m.v) ? '?' : sg(m.v)}`).join(', ') + ` = <b>${sg(modSum)}</b>` : 'nothing')}</p>`;
+    h += `<p class="breakdown">${entry.death && !mods.length ? 'Death saves add nothing.' : 'Add: ' + (mods.length ? mods.map(m => `${m.t} ${isNaN(m.v) ? '?' : sg(m.v)}`).join(', ') + ` = <b>${sg(modSum)}</b>` : 'nothing')}</p>`;
     if (die != null && die >= 1 && die <= 20 && exReady) {
       const total = die + modSum;
       let cls = '', note = '';
@@ -982,7 +1089,7 @@ function layerRoll(L) {
       if (die === 1) { cls = 'fail'; note = entry.g === 'Attacks' ? 'Natural 1: automatic miss.' : 'Natural 1.'; }
       if (entry.death) {
         note = die === 20 ? 'Natural 20: you regain 1 HP!' : die === 1 ? 'Natural 1: two failures.' : total >= 10 ? 'Success.' : 'Failure.';
-        h += `<div class="result ${cls}"><span class="lbl">Result</span><span class="total">${die}</span><p>${note}</p></div><button class="btn pri full" data-act="deathApply" data-r="${die}">Mark it on the tracker</button>`;
+        h += `<div class="result ${cls}"><span class="lbl">Result</span><span class="total">${total}</span>${mods.length ? `<p class="breakdown">d20 ${die} ${mods.map(m => `${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join(' ')}</p>` : ''}<p>${note}</p></div><button class="btn pri full" data-act="deathApply" data-r="${die}" data-t="${total}">Mark it on the tracker</button>`;
       } else {
         let dcTxt = '';
         if (entry.concSave) { const dmgN = parseInt(L.concDmg, 10) || 0; const dc = Math.min(30, Math.max(10, Math.floor(dmgN / 2))); dcTxt = `<p>DC ${dc}: <b>${total >= dc ? 'Concentration holds' : 'Concentration breaks'}</b></p>`; }
@@ -993,16 +1100,17 @@ function layerRoll(L) {
       }
     }
   } else {
-    const o = L.opts || (L.opts = { hex: S.c.conc === 'hex', twoHand: true, slot: d.slotLvl });
+    const o = L.opts || (L.opts = { hex: S.c.conc === 'hex', twoHand: true, slot: d.slotLvl, hurt: true });
     const built = entry.build(o);
+    if (o.hex && entry.atkRoll) built.groups.push({ id: 'hex', n: '1d6 Hex', die: 6, count: 1, type: 'Necrotic' });
     const toggles = [];
+    if (entry.weapon) toggles.push(['twoHand', 'Two hands (d10)']);
+    if (entry.atkRoll) toggles.push(['hex', 'Hex']);
     if (entry.k === 'stakeDmg') {
-      toggles.push(['twoHand', 'Two hands (d10)']);
-      toggles.push(['hex', 'Hex']);
-      if (hasInv('eldritchSmite')) toggles.push(['smite', 'Eldritch Smite']);
+      if (hasInv('eldritchSmite')) toggles.push(['smite', L.smiteSpent ? 'Eldritch Smite (slot spent)' : 'Eldritch Smite (spends a slot)']);
       if (hasInv('lifedrinker')) toggles.push(['life', 'Lifedrinker']);
     }
-    if (entry.k === 'sparkDmg') toggles.push(['hex', 'Hex']);
+    if (entry.k === 'tollTheDeadDmg') toggles.push(['hurt', 'Target is hurt (d12)']);
     if (entry.g === 'Damage' && entry.k !== 'otherDmg' && entry.k !== 'holyWater') toggles.push(['crit', 'Critical hit']);
     if (toggles.length) h += `<div class="chips">${toggles.map(t => `<button class="chip ${o[t[0]] ? 'on' : ''}" data-act="rollOpt" data-o="${t[0]}" aria-pressed="${!!o[t[0]]}">${t[1]}</button>`).join('')}</div>`;
     if (entry.k === 'hwHeal') h += `<label class="f">Slot level<select class="in" id="hwSlot" data-act="hwSlot">${Array.from({ length: d.slotLvl }, (_, i) => i + 1).map(n => `<option value="${n}" ${o.slot === n ? 'selected' : ''}>${n}${n === 1 ? ' (free cast is level 1)' : ''}</option>`).join('')}</select></label>`;
@@ -1027,6 +1135,7 @@ function layerRoll(L) {
       h += `<div class="result"><span class="lbl">${built.heal ? 'Healing' : built.temp ? 'Temp HP' : 'Total damage'}</span><span class="total">${total}</span><p class="breakdown">${parts.map(p => `${p.v} ${esc(p.type || p.n)}`).join(' + ')}${flat.map(m => ` ${m.v >= 0 ? '+' : '−'} ${Math.abs(m.v)} ${m.t}`).join('')}</p></div>`;
       if (built.heal && !built.selfHD && entry.k !== 'medic') h += `<button class="btn pri full" data-act="selfHeal" data-v="${total}">Heal Cletus by ${total}</button>`;
       if (built.selfHD) h += `<button class="btn pri full" data-act="lifeHeal" data-v="${total}">Spend a Hit Die and heal ${total}</button>`;
+      if (built.medic) h += S.c.healerKit > 0 ? `<button class="btn pri full" data-act="useKit" ${L.kitUsed ? 'disabled' : ''}>${L.kitUsed ? 'Kit charge used' : 'Use 1 Healer\'s Kit charge'}</button>` : '<p class="small" style="font-weight:600">The Healer\'s Kit is empty. Battle Medic needs a charge.</p>';
       if (built.temp) h += `<button class="btn pri full" data-act="selfTemp" data-v="${total}">Give Cletus ${total} temp HP</button>`;
       if (!L.rerolled) h += heroicBtn;
     }
@@ -1038,23 +1147,28 @@ function c_concBreaks(L, total) { const dmgN = parseInt(L.concDmg, 10) || 0; con
 /* Casting ------------------------------------------------------ */
 function layerCast(L) {
   const d = D(), c = S.c, s = SP[L.id];
-  let h = `<p class="small muted">${s.l === 0 ? 'Cantrip' : 'Level ' + s.l} · ${s.t} · ${s.r}${s.c ? ' · Concentration' : ''}</p><p>${esc(s.s)}</p>`;
-  const opts = [];
+  let h = `<p class="small muted">${s.l === 0 ? 'Cantrip' : 'Level ' + s.l} · ${s.t} · ${s.r}${s.c ? ' · Concentration' : ''}${durText(L.id, d.slotLvl) ? ' · ' + durText(L.id, d.slotLvl) : ''}</p><p>${esc(s.s)}</p>`;
+  const free = [], paid = [];
   const slotsLeft = d.slots - c.slotsUsed;
   const isArc = Object.keys(c.arcanum).find(l => c.arcanum[l] === L.id);
-  if (L.id === 'mageArmor') opts.push(['free', 'Armor of Shadows (at will)', true]);
-  else if (isArc) opts.push(['arc' + isArc, 'Mystic Arcanum (once per Long Rest)', !c.uses['arc' + isArc]]);
-  else if (s.l === 0) opts.push(['cantrip', 'Cantrip: no slot needed', true]);
+  if (L.id === 'mageArmor') free.push(['free', 'Armor of Shadows (at will)', true]);
+  else if (isArc) free.push(['arc' + isArc, 'Mystic Arcanum (once per Long Rest)', !c.uses['arc' + isArc]]);
+  else if (s.l === 0) free.push(['cantrip', 'Cantrip: no slot needed', true]);
   else {
-    if (s.l <= d.slotLvl) opts.push(['slot', `Pact slot (cast at level ${d.slotLvl}) · ${slotsLeft} left`, slotsLeft > 0]);
-    if (L.id === 'mistyStep' && d.steps) opts.push(['steps', `Steps of the Fey · ${d.steps - c.uses.steps} left`, c.uses.steps < d.steps]);
-    if (L.id === 'healingWord') opts.push(['freeHW', 'Magic Initiate free cast (level 1)', !c.uses.freeHW]);
-    if (L.id === 'contactOtherPlane') opts.push(['patron', 'Contact Patron free cast', !c.uses.patron]);
+    if (L.id === 'mistyStep' && d.steps) free.push(['steps', `Free: Steps of the Fey · ${d.steps - c.uses.steps} left`, c.uses.steps < d.steps]);
+    if (L.id === 'mistyStep' && d.has('feyTouched')) free.push(['feyT', 'Free: Fey Touched (once per Long Rest)', !c.uses.feyT]);
+    if (L.id === 'invisibility' && d.has('shadowTouched')) free.push(['shadowT', 'Free: Shadow Touched (once per Long Rest)', !c.uses.shadowT]);
+    if (L.id === 'healingWord') free.push(['freeHW', 'Free: Magic Initiate (level 1)', !c.uses.freeHW]);
+    if (L.id === 'contactOtherPlane') free.push(['patron', 'Free: Contact Patron', !c.uses.patron]);
+    if (s.l <= d.slotLvl) paid.push(['slot', `Pact slot (cast at level ${d.slotLvl}) · ${slotsLeft} left`, slotsLeft > 0]);
   }
   if (s.c && c.conc && c.conc !== L.id) h += `<div class="banner"><div class="small">Casting this ends <b>${esc(SP[c.conc].n)}</b>.</div></div>`;
   if (L.id === 'mistyStep' && d.L >= 3) h += `<div class="card small"><b>Steps of the Fey:</b> add Refreshing Step (1d10 temp HP) or Taunting Step (Wis save DC ${d.dc} or Disadvantage on attacks against anyone but you)${d.L >= 6 ? ', Disappearing Step or Dreadful Step (2d10 Psychic, Wis save)' : ''}.</div>`;
-  if (L.id === 'armorAgathys') h += `<p class="small">At level ${d.slotLvl}: ${5 * d.slotLvl} temp HP, ${5 * d.slotLvl} Cold to melee attackers.</p>`;
-  h += `<div class="stack">${opts.map(o => `<button class="btn ${o[2] ? 'pri' : ''} full" data-act="castDo" data-via="${o[0]}" ${o[2] ? '' : 'disabled'}>${o[1]}</button>`).join('')}</div>`;
+  if (L.id === 'armorAgathys') h += `<p class="small">At level ${d.slotLvl}: ${5 * d.slotLvl} temp HP, ${5 * d.slotLvl} Cold to melee attackers.${c.temp > 5 * d.slotLvl ? ` He already has ${c.temp} temp HP, which is more: casting it would only add the cold damage until those run out.` : ''}</p>`;
+  if (durText(L.id, d.slotLvl)) h += `<label class="f">Target (optional)<input class="in" id="castTarget" value="${esc(L.target || '')}" placeholder="${L.id === 'hex' ? 'e.g. the vampire spawn' : 'Who or what'}"></label>`;
+  const opts = free.concat(paid);
+  const firstFree = free.findIndex(o => o[2]);
+  h += `<div class="stack">${opts.map((o, i) => `<button class="btn ${o[2] && (i === firstFree || (firstFree < 0 && o[0] === 'slot')) ? 'pri' : ''} full" data-act="castDo" data-via="${o[0]}" ${o[2] ? '' : 'disabled'}>${o[1]}</button>`).join('')}</div>`;
   if (!opts.some(o => o[2])) h += '<p class="small muted">Nothing left to cast it with. A Short Rest restores Pact slots.</p>';
   return { title: s.n, html: h };
 }
@@ -1073,7 +1187,7 @@ function layerItem(L) {
   };
 }
 function layerNote(L) {
-  const n = L.id ? S.notes.find(x => x.id === L.id) : null;
+  const n = L.id ? allNotes().find(x => x.id === L.id) : null;
   const f = L.form || (L.form = { title: n ? n.title || '' : '', tag: n ? n.tag || 'NPC' : 'NPC', body: n ? n.body || '' : '' });
   return {
     title: n ? 'Edit note' : 'New note', focus: L.id ? null : 'ntTitle',
@@ -1094,13 +1208,19 @@ function layerShort(L) {
     <div class="spread"><span>Hit Dice to spend <span class="small muted">(${left} left)</span></span><div class="stepper"><button class="btn" data-act="srN" data-d="-1">−</button><b>${n}</b><button class="btn" data-act="srN" data-d="1">+</button></div></div>`;
   if (n > 0) h += `<label class="f">Total rolled on ${n}d8<input class="in die" id="srRoll" inputmode="numeric" value="${esc(L.roll || '')}" style="width:100%"></label>`;
   const r = parseInt(L.roll, 10);
-  const heal = n > 0 && r >= n ? r + n * d.m.con : 0;
+  const okRoll = n > 0 && r >= n && r <= 8 * n;
+  const heal = okRoll ? Math.max(n, r + n * d.m.con) : 0;
+  if (n > 0 && L.roll && !okRoll) h += `<p class="small" style="font-weight:600">${n}d8 can only total ${n} to ${8 * n}.</p>`;
   if (heal) h += `<p class="breakdown">${r} rolled + ${n * d.m.con} CON = <b>${heal} HP</b></p>`;
   h += `<button class="btn pri full" data-act="srDo" ${n > 0 && !heal ? 'disabled' : ''}>Finish Short Rest${heal ? ' (+' + heal + ' HP)' : ''}</button>`;
   return { title: 'Short Rest', html: h };
 }
 function layerLong() {
   return { title: 'Long Rest', html: `<p>Restores HP, Hit Dice, Pact slots and every once-per-Long-Rest resource, gives back Heroic Inspiration, clears temp HP and concentration, and lowers Exhaustion by 1.</p><button class="btn pri full" data-act="lrDo">Finish Long Rest</button>` };
+}
+function layerImport(L) {
+  const b = L.data;
+  return { title: 'Restore backup?', html: `<p>Replace Cletus as he is now (level ${S.c ? S.c.level : '?'}) with the backup: level ${b.level}${b.updated ? ', saved ' + new Date(b.updated).toLocaleString() : ''}.</p><p class="small muted">You can tap Undo afterwards if it was the wrong file.</p><button class="btn pri full" data-act="importDo">Restore this backup</button>` };
 }
 function layerUndo() {
   const h = S.c.history[S.c.history.length - 1];
@@ -1116,7 +1236,7 @@ function startWizard() {
   steps.push('inv', 'cantrip', 'spells');
   if (ARCANUM[L]) steps.push('arc');
   steps.push('confirm');
-  openLayer({ type: 'level', L, steps, i: 0, w: { hpMode: 'avg', hpRoll: '', asiMode: 'asi', asiA: 'cha', asiB: '', asiPlus2: c.abilities.cha <= 18, feat: '', featAb: '', featSave: '', featSkill: '', featExp: '', boon: '', boonAb: 'cha', invAdd: [], invChoice: {}, invOut: '', invIn: '', invInChoice: '', canAdd: [], canOut: '', canIn: '', spAdd: [], spOut: '', spIn: '', arc: '' } });
+  openLayer({ type: 'level', L, steps, i: 0, w: { hpMode: 'avg', hpRoll: '', asiMode: 'asi', asiA: 'cha', asiB: '', asiPlus2: c.abilities.cha <= 18, feat: '', featAb: '', featSave: '', featSkill: '', featExp: '', featSpell: '', arcOut: '', arcIn: '', boon: '', boonAb: 'cha', invAdd: [], invChoice: {}, invOut: '', invIn: '', invInChoice: '', canAdd: [], canOut: '', canIn: '', spAdd: [], spOut: '', spIn: '', arc: '' } });
 }
 function wizCtx(L) {
   // State of invocations after this level's picks, for prerequisite checks.
@@ -1151,6 +1271,14 @@ function choiceSelect(kind, id, value, key) {
   const opts = Object.keys(ORIGIN_FEATS).filter(f => !owned.includes(f) || f === 'magicInitiate' || f === 'skilled');
   return `<select class="in" id="ch-${key}" data-wchoice="${key}"><option value="">Choose Origin feat</option>${opts.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${ORIGIN_FEATS[o][0]}</option>`).join('')}</select>`;
 }
+function featPre(f) {
+  const pre = f.pre, c = S.c, have = c.feats.map(x => x.id);
+  if (/13\+$/.test(pre)) { const abs = pre.replace(' 13+', '').split(/, | or /).map(x => x.toLowerCase()); return abs.some(a => (c.abilities[a] || 0) >= 13) ? '' : 'needs ' + pre; }
+  if (pre === 'Medium armor training') return have.includes('moderatelyArmored') ? '' : 'needs medium armor training';
+  if (pre === 'Heavy armor training') return have.includes('heavilyArmored') ? '' : 'needs heavy armor training';
+  if (pre === 'Shield training') return have.includes('lightlyArmored') || have.includes('moderatelyArmored') ? '' : 'needs shield training';
+  return '';
+}
 function abOptions(list, sel, cap) {
   const c = S.c;
   return list.map(a => `<option value="${a}" ${sel === a ? 'selected' : ''} ${c.abilities[a] >= cap ? 'disabled' : ''}>${ABN[a]} (${c.abilities[a]})</option>`).join('');
@@ -1161,7 +1289,10 @@ function wizValid(L) {
   if (step === 'asi') {
     if (w.asiMode === 'asi') return w.asiPlus2 ? c.abilities[w.asiA] <= 18 : (w.asiA && w.asiB && w.asiA !== w.asiB && c.abilities[w.asiA] < 20 && c.abilities[w.asiB] < 20);
     if (!w.feat || !w.featAb) return false;
+    if (featPre(GF[w.feat])) return false;
     if (w.feat === 'skillExpert' && (!w.featSkill || !w.featExp)) return false;
+    if (SKILL_FEATS[w.feat] && !w.featSkill) return false;
+    if ((w.feat === 'feyTouched' || w.feat === 'shadowTouched') && !w.featSpell.trim()) return false;
     return true;
   }
   if (step === 'boon') return !!w.boon && !!w.boonAb;
@@ -1174,7 +1305,7 @@ function wizValid(L) {
     return true;
   }
   if (step === 'cantrip') { const need = CANTRIPS[lvl] - CANTRIPS[lvl - 1]; return w.canAdd.length === need && (!w.canOut || !!w.canIn); }
-  if (step === 'spells') { const need = PREPARED[lvl] - PREPARED[lvl - 1]; return w.spAdd.length === need && (!w.spOut || !!w.spIn); }
+  if (step === 'spells') { const need = PREPARED[lvl] - PREPARED[lvl - 1]; return w.spAdd.length === need && (!w.spOut || !!w.spIn) && (!w.arcOut || !!w.arcIn); }
   if (step === 'arc') return !!w.arc;
   return true;
 }
@@ -1219,7 +1350,7 @@ function layerLevel(L) {
       if (!w.asiPlus2) h += `<label class="f">Second +1<select class="in" id="wAsiB" data-wk="asiB"><option value="">Choose</option>${abOptions(AB.filter(a => a !== w.asiA), w.asiB, 20)}</select></label>`;
       h += '<p class="small muted">Scores max out at 20. Charisma 20 is the usual warlock pick.</p>';
     } else {
-      h += `<label class="f">Feat<select class="in" id="wFeat" data-wk="feat"><option value="">Choose a feat</option>${GENERAL_FEATS.filter(f => !c.feats.some(x => x.id === f[0])).map(f => `<option value="${f[0]}" ${w.feat === f[0] ? 'selected' : ''}>${f[1]}</option>`).join('')}</select></label>`;
+      h += `<label class="f">Feat<select class="in" id="wFeat" data-wk="feat"><option value="">Choose a feat</option>${GENERAL_FEATS.filter(f => !c.feats.some(x => x.id === f[0])).map(f => { const why = featPre(GF[f[0]]); return `<option value="${f[0]}" ${w.feat === f[0] ? 'selected' : ''} ${why ? 'disabled' : ''}>${f[1]}${why ? ' (' + why + ')' : ''}</option>`; }).join('')}</select></label>`;
       if (w.feat) {
         const f = GF[w.feat];
         const abs = f.ab === 'any' ? AB : f.ab;
@@ -1229,6 +1360,8 @@ function layerLevel(L) {
           h += `<label class="f">New skill proficiency<select class="in" id="wFeatSkill" data-wk="featSkill"><option value="">Choose</option>${SKILLS.filter(s => !c.skillProf.includes(s[0])).map(s => `<option value="${s[0]}" ${w.featSkill === s[0] ? 'selected' : ''}>${s[1]}</option>`).join('')}</select></label>
             <label class="f">Expertise in<select class="in" id="wFeatExp" data-wk="featExp"><option value="">Choose</option>${SKILLS.filter(s => (c.skillProf.includes(s[0]) || s[0] === w.featSkill) && !c.expertise.includes(s[0])).map(s => `<option value="${s[0]}" ${w.featExp === s[0] ? 'selected' : ''}>${s[1]}</option>`).join('')}</select></label>`;
         }
+        if (SKILL_FEATS[w.feat]) h += `<label class="f">Skill (proficiency, or Expertise if already proficient)<select class="in" id="wFeatSkill" data-wk="featSkill"><option value="">Choose</option>${SKILL_FEATS[w.feat].map(k => `<option value="${k}" ${w.featSkill === k ? 'selected' : ''}>${SKN[k][1]}${c.skillProf.includes(k) ? ' (Expertise)' : ''}</option>`).join('')}</select></label>`;
+        if (w.feat === 'feyTouched' || w.feat === 'shadowTouched') h += `<label class="f">Its level 1 spell (${w.feat === 'feyTouched' ? 'Divination or Enchantment' : 'Illusion or Necromancy'})<input class="in" id="wFeatSpell" data-wk="featSpell" value="${esc(w.featSpell)}" placeholder="${w.feat === 'feyTouched' ? 'e.g. Command' : 'e.g. Cause Fear'}"></label>`;
         if (w.feat === 'resilient' && w.featAb && c.saveProf.includes(w.featAb)) h += '<p class="small" style="font-weight:600">He\'s already proficient in that save; pick another ability to gain one.</p>';
       }
       h += '<p class="small muted">Good picks for Cletus: War Caster or Resilient (Con) for concentration, Fey Touched, Telepathic.</p>';
@@ -1250,7 +1383,7 @@ function layerLevel(L) {
         return `<label class="opt ${dis ? 'dis' : ''}"><input type="checkbox" data-act="wToggle" data-list="invAdd" data-id="${id}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}><span><b>${esc(v.n)}</b><span class="small muted">${esc(v.s)}${why && !on ? ' · ' + why : ''}</span>${on && v.rep ? choiceSelect(v.rep, id, w.invChoice[id] || '', id) : ''}</span></label>`;
       }).join('');
     }
-    h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wInvOut" data-wk="invOut"><option value="">Keep all</option>${c.invocations.map((iv, i) => `<option value="${i}" ${w.invOut === String(i) ? 'selected' : ''}>${INV[iv.id] ? INV[iv.id].n : iv.id}</option>`).join('')}</select></label>`;
+    h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wInvOut" data-wk="invOut"><option value="">Keep all</option>${c.invocations.map((iv, i) => { const blockers = (INV_DEPENDENTS[iv.id] || []).filter(x => hasInv(x)); return `<option value="${i}" ${w.invOut === String(i) ? 'selected' : ''} ${blockers.length ? 'disabled' : ''}>${INV[iv.id] ? INV[iv.id].n : iv.id}${blockers.length ? ' (needed by ' + blockers.map(x => INV[x].n).join(', ') + ')' : ''}</option>`; }).join('')}</select></label>`;
     if (w.invOut !== '') {
       h += `<label class="f">With<select class="in" id="wInvIn" data-wk="invIn"><option value="">Choose</option>${INV_ROWS.map(r => r[0]).filter(id => !w.invAdd.includes(id) && !invEligible(id, L, ctx)).map(id => `<option value="${id}" ${w.invIn === id ? 'selected' : ''}>${INV[id].n}</option>`).join('')}</select></label>`;
       if (w.invIn && INV[w.invIn].rep) h += choiceSelect(INV[w.invIn].rep, w.invIn, w.invInChoice, '__in');
@@ -1263,7 +1396,7 @@ function layerLevel(L) {
     const ctxC = c.cantrips.concat(w.canAdd);
     h += `<p>${need ? `Choose <b>${need}</b> new warlock cantrip (${w.canAdd.length} chosen).` : 'No new cantrips this level.'}</p>`;
     if (need) h += pool.filter(id => !c.cantrips.includes(id)).map(id => { const on = w.canAdd.includes(id); const dis = !on && w.canAdd.length >= need; return `<label class="opt ${dis ? 'dis' : ''}"><input type="checkbox" data-act="wToggle" data-list="canAdd" data-id="${id}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}><span><b>${SP[id].n}</b><span class="small muted">${esc(SP[id].s)}</span></span></label>`; }).join('');
-    h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wCanOut" data-wk="canOut"><option value="">Keep all</option>${c.cantrips.map(id => `<option value="${id}" ${w.canOut === id ? 'selected' : ''}>${SP[id].n}</option>`).join('')}</select></label>
+    h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wCanOut" data-wk="canOut"><option value="">Keep all</option>${c.cantrips.map(id => { const tied = c.invocations.filter(iv => iv.choice === id && INV[iv.id] && INV[iv.id].rep === 'cantrip'); return `<option value="${id}" ${w.canOut === id ? 'selected' : ''} ${tied.length ? 'disabled' : ''}>${SP[id].n}${tied.length ? ' (used by ' + tied.map(iv => INV[iv.id].n).join(', ') + ')' : ''}</option>`; }).join('')}</select></label>
       ${w.canOut ? `<label class="f">With<select class="in" id="wCanIn" data-wk="canIn"><option value="">Choose</option>${pool.filter(id => !ctxC.includes(id)).map(id => `<option value="${id}" ${w.canIn === id ? 'selected' : ''}>${SP[id].n}</option>`).join('')}</select></label>` : ''}</div>`;
   }
   if (step === 'spells') {
@@ -1282,6 +1415,12 @@ function layerLevel(L) {
     }
     h += `<div class="card"><h2>Swap one (optional)</h2><label class="f">Replace<select class="in" id="wSpOut" data-wk="spOut"><option value="">Keep all</option>${c.prepared.map(id => `<option value="${id}" ${w.spOut === id ? 'selected' : ''}>${SP[id].n}</option>`).join('')}</select></label>
       ${w.spOut ? `<label class="f">With<select class="in" id="wSpIn" data-wk="spIn"><option value="">Choose</option>${pool.filter(id => !have.includes(id)).map(id => `<option value="${id}" ${w.spIn === id ? 'selected' : ''}>${SP[id].n} (level ${SP[id].l})</option>`).join('')}</select></label>` : ''}</div>`;
+    const arcLevels = Object.keys(c.arcanum);
+    if (arcLevels.length) {
+      h += `<div class="card"><h2>Swap a Mystic Arcanum (optional)</h2><label class="f">Replace<select class="in" id="wArcOut" data-wk="arcOut"><option value="">Keep all</option>${arcLevels.map(l => `<option value="${l}" ${w.arcOut === l ? 'selected' : ''}>${SP[c.arcanum[l]] ? SP[c.arcanum[l]].n : c.arcanum[l]} (level ${l})</option>`).join('')}</select></label>`;
+      if (w.arcOut) h += `<label class="f">With<select class="in" id="wArcIn" data-wk="arcIn"><option value="">Choose</option>${SPELL_ROWS.filter(r => r[7] === 'w' && r[2] === +w.arcOut && r[0] !== c.arcanum[w.arcOut]).map(r => `<option value="${r[0]}" ${w.arcIn === r[0] ? 'selected' : ''}>${r[1]}</option>`).join('')}</select></label>`;
+      h += '</div>';
+    }
   }
   if (step === 'arc') {
     const al = ARCANUM[lvl];
@@ -1300,6 +1439,7 @@ function layerLevel(L) {
     w.spAdd.forEach(id => lines.push(`Spell: ${SP[id].n}`));
     if (w.spOut && w.spIn) lines.push(`Swap spell: ${SP[w.spOut].n} → ${SP[w.spIn].n}`);
     if (w.arc) lines.push(`Mystic Arcanum: ${SP[w.arc].n}`);
+    if (w.arcOut && w.arcIn) lines.push(`Swap Arcanum: ${SP[c.arcanum[w.arcOut]].n} → ${SP[w.arcIn].n}`);
     h += `<p>Ready to make Cletus level ${lvl}:</p><ul>${lines.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="small muted">You can undo this from the Sheet tab.</p>`;
   }
   const valid = wizValid(L);
@@ -1323,6 +1463,8 @@ function applyLevel(L) {
       const entry = { id: w.feat, src: 'Level ' + lvl, note: `${ABN[w.featAb]} +1` };
       if (w.feat === 'resilient' && !c.saveProf.includes(w.featAb)) c.saveProf.push(w.featAb);
       if (w.feat === 'skillExpert') { if (!c.skillProf.includes(w.featSkill)) c.skillProf.push(w.featSkill); if (!c.expertise.includes(w.featExp)) c.expertise.push(w.featExp); entry.note += `, ${SKN[w.featSkill][1]}, Expertise ${SKN[w.featExp][1]}`; }
+      if (SKILL_FEATS[w.feat]) { const k = w.featSkill; if (c.skillProf.includes(k)) { if (!c.expertise.includes(k)) c.expertise.push(k); entry.note += `, Expertise ${SKN[k][1]}`; } else { c.skillProf.push(k); entry.note += `, ${SKN[k][1]}`; } }
+      if (w.feat === 'feyTouched' || w.feat === 'shadowTouched') entry.choice = w.featSpell.trim();
       c.feats.push(entry);
     }
   }
@@ -1334,6 +1476,7 @@ function applyLevel(L) {
   if (w.spOut && w.spIn) c.prepared = c.prepared.map(x => x === w.spOut ? w.spIn : x);
   c.prepared = c.prepared.concat(w.spAdd);
   if (w.arc) c.arcanum[ARCANUM[lvl]] = w.arc;
+  if (w.arcOut && w.arcIn) c.arcanum[w.arcOut] = w.arcIn;
   const after = D().hpMax;
   c.hp = Math.max(0, c.hp + (after - before));
   c.slotsUsed = Math.min(c.slotsUsed, SLOTS[lvl]);
@@ -1344,17 +1487,31 @@ function toast(msg) {
   const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status');
   document.body.appendChild(t); setTimeout(() => t.remove(), 2200);
 }
-function applyDamage(n) {
-  const c = S.c; let rest = n;
-  if (c.temp > 0) { const ab = Math.min(c.temp, rest); c.temp -= ab; rest -= ab; if (c.temp === 0) c.agathys = 0; }
-  const wasUp = c.hp > 0;
+function endConcentration() { const c = S.c; if (c.conc) { c.effects = c.effects.filter(e => e.sid !== c.conc); c.conc = null; } }
+function applyDamage(n, crit) {
+  // Returns a message for anything rules-relevant that happened.
+  const c = S.c, d = D(); let rest = n, msg = '';
+  if (c.temp > 0) { const ab = Math.min(c.temp, rest); c.temp -= ab; rest -= ab; if (c.temp === 0) { c.agathys = 0; c.effects = c.effects.filter(e => e.sid !== 'armorAgathys'); } }
+  if (rest <= 0) return msg;
+  if (c.hp <= 0) {
+    if (rest >= d.hpMax) { c.deathF = 3; return 'Massive damage at 0 HP: Cletus dies.'; }
+    c.deathF = Math.min(3, c.deathF + (crit ? 2 : 1));
+    if (c.deathS >= 3) c.deathS = 0; // damage ends stability
+    return c.deathF >= 3 ? 'Three death save failures: Cletus dies.' : `Damage at 0 HP: ${crit ? 'two failed death saves' : 'one failed death save'}.`;
+  }
+  const over = rest - c.hp;
   c.hp = Math.max(0, c.hp - rest);
-  if (!wasUp && n > 0) c.deathF = Math.min(3, c.deathF + 1);
-  if (wasUp && c.hp === 0) { c.deathS = 0; c.deathF = 0; if (c.conc) c.conc = null; }
+  if (c.hp === 0) {
+    c.deathS = 0; c.deathF = 0; endConcentration();
+    if (!c.conditions.includes('unconscious')) c.conditions.push('unconscious');
+    if (over >= d.hpMax) { c.deathF = 3; return 'Massive damage: the leftover damage equals his HP maximum. Cletus dies outright.'; }
+    msg = 'Cletus drops to 0 HP and falls Unconscious.';
+  }
+  return msg;
 }
 function applyHeal(n) {
   const c = S.c, d = D();
-  if (c.hp === 0 && n > 0) { c.deathS = 0; c.deathF = 0; }
+  if (c.hp === 0 && n > 0) { c.deathS = 0; c.deathF = 0; c.conditions = c.conditions.filter(x => x !== 'unconscious'); }
   c.hp = Math.min(d.hpMax, c.hp + n);
 }
 const ACTIONS = {
@@ -1369,41 +1526,59 @@ const ACTIONS = {
     if (L.mode === 'dmg') {
       const conc = c.conc;
       const agathys = c.temp > 0 ? c.agathys : 0;
-      applyDamage(n);
+      const msg = applyDamage(n, !!L.crit);
       closeLayer(); commit();
-      if (agathys) toast(`Armor of Agathys: a melee attacker takes ${agathys} Cold.`);
+      if (msg) toast(msg);
+      else if (agathys) toast(`Armor of Agathys: a melee attacker takes ${agathys} Cold.`);
       if (conc && c.conc && n > 0) openLayer({ type: 'roll', k: 'conc', concDmg: String(n) });
       return;
     }
     if (L.mode === 'heal') applyHeal(n);
-    if (L.mode === 'temp') { if (n > c.temp) { c.temp = n; c.agathys = 0; } }
+    if (L.mode === 'temp') { if (n > c.temp) { c.temp = n; c.agathys = 0; c.effects = c.effects.filter(e => e.sid !== 'armorAgathys'); } else { toast(`He keeps his ${c.temp} temp HP: they don't stack.`); closeLayer(); return; } }
     closeLayer(); commit();
   },
-  endConc: () => { S.c.conc = null; if (S.layer && S.layer.type === 'roll') closeLayer(); commit(); toast('Concentration ended.'); },
+  endConc: () => { endConcentration(); if (S.layer && S.layer.type === 'roll') closeLayer(); commit(); toast('Concentration ended.'); },
+  hpCrit: () => { S.layer.crit = !S.layer.crit; renderLayer(); },
+  undoLast: () => { const snap = S.undo.pop(); if (!snap) return; S.c = upgrade(snap); S.prev = null; closeLayer(); commit({ noUndo: true }); toast('Undone.'); },
+  turn: el => { const c = S.c, k = el.dataset.k; c.turn = Object.assign({}, c.turn); c.turn[k] = !c.turn[k]; commit(); },
+  newTurn: () => { S.c.turn = {}; commit(); toast('New turn.'); },
+  endEffect: el => { const c = S.c, sid = el.dataset.sid; c.effects = c.effects.filter(e => e.sid !== sid); if (sid === 'armorAgathys') c.agathys = 0; if (c.conc === sid) c.conc = null; commit(); },
+  mageArmorToggle: () => { S.c.mageArmor = !S.c.mageArmor; commit(); toast(S.c.mageArmor ? 'Mage Armor up: AC ' + D().ac : 'Mage Armor down: AC ' + D().ac); },
+  coinMove: el => {
+    const c = S.c, k = S.coinType, amt = parseInt(S.coinAmt, 10), dir = +el.dataset.d;
+    if (!(amt > 0)) { toast('Type an amount first.'); return; }
+    if (dir < 0 && c.coins[k] < amt) { toast(`Not enough: he has ${c.coins[k]} ${k.toUpperCase()}.`); return; }
+    c.coins[k] += dir * amt; S.coinAmt = ''; commit(); toast(`${dir > 0 ? 'Gained' : 'Spent'} ${amt} ${k.toUpperCase()}.`);
+  },
+  useKit: () => { const c = S.c, L = S.layer; if (c.healerKit <= 0 || L.kitUsed) return; c.healerKit -= 1; L.kitUsed = true; commit(); },
+  importDo: () => { const data = S.layer.data; S.c = upgrade(clone(data)); fixHp(); S.conn = S.docRef ? 'cloud' : 'local'; closeLayer(); commit(); toast(`Restored Cletus at level ${S.c.level}.`); },
   mageArmor: () => { S.c.mageArmor = true; commit(); },
   slot: el => { const i = +el.dataset.i, c = S.c; c.slotsUsed = i < c.slotsUsed ? i : i + 1; commit(); },
   use: el => { const u = el.dataset.u, i = +el.dataset.i, c = S.c; c.uses[u] = i < c.uses[u] ? i : i + 1; commit(); },
   hd: el => { const i = +el.dataset.i, c = S.c; c.hdSpent = i < c.hdSpent ? i : i + 1; commit(); },
-  cunning: () => { const c = S.c, d = D(); if (c.uses.cunning) return; const back = d.L >= 20 ? c.slotsUsed : Math.min(c.slotsUsed, Math.ceil(d.slots / 2)); c.slotsUsed -= back; c.uses.cunning = 1; commit(); toast(`Magical Cunning: ${back} slot${back === 1 ? '' : 's'} back.`); },
+  cunning: () => { const c = S.c, d = D(); if (c.uses.cunning || !c.slotsUsed) return; const back = d.L >= 20 ? c.slotsUsed : Math.min(c.slotsUsed, Math.ceil(d.slots / 2)); c.slotsUsed -= back; c.uses.cunning = 1; commit(); toast(`Magical Cunning: ${back} slot${back === 1 ? '' : 's'} back.`); },
   heroic: () => { S.c.heroic = !S.c.heroic; commit(); },
   kit: el => { const c = S.c; c.healerKit = Math.max(0, c.healerKit + +el.dataset.d); commit(); },
   dsS: el => { const i = +el.dataset.i, c = S.c; c.deathS = i < c.deathS ? i : i + 1; commit(); },
   dsF: el => { const i = +el.dataset.i, c = S.c; c.deathF = i < c.deathF ? i : i + 1; commit(); },
   cond: el => { const c = S.c, id = el.dataset.id; c.conditions = c.conditions.includes(id) ? c.conditions.filter(x => x !== id) : c.conditions.concat(id); commit(); },
-  exh: el => { const c = S.c; c.exhaustion = Math.max(0, Math.min(6, c.exhaustion + +el.dataset.d)); commit(); if (c.exhaustion === 6) toast('Exhaustion 6: Cletus dies.'); },
+  exh: el => { const c = S.c; c.exhaustion = Math.max(0, Math.min(6, c.exhaustion + +el.dataset.d)); if (c.exhaustion === 6) { c.hp = 0; endConcentration(); } commit(); if (c.exhaustion === 6) toast('Exhaustion 6: Cletus dies. Tap Undo if that was a mistake.'); },
   shortRest: () => openLayer({ type: 'short', n: 0 }),
   srN: el => { const L = S.layer, d = D(), left = d.L - S.c.hdSpent; L.n = Math.max(0, Math.min(left, (L.n || 0) + +el.dataset.d)); renderLayer(); },
   srDo: () => {
     const L = S.layer, c = S.c, d = D();
     const n = L.n || 0, r = parseInt(L.roll, 10);
-    if (n > 0 && r >= n) { applyHeal(r + n * d.m.con); c.hdSpent += n; }
+    if (n > 0 && !(r >= n && r <= 8 * n)) return;
+    if (n > 0) { applyHeal(Math.max(n, r + n * d.m.con)); c.hdSpent += n; }
     c.slotsUsed = 0;
     closeLayer(); commit(); toast('Short Rest done. Pact slots restored.');
   },
   longRest: () => openLayer({ type: 'long' }),
   lrDo: () => {
     const c = S.c, d = D();
-    c.hp = d.hpMax; c.temp = 0; c.agathys = 0; c.hdSpent = 0; c.slotsUsed = 0; c.deathS = 0; c.deathF = 0; c.conc = null; c.heroic = true; c.mageArmor = true;
+    if (d.dead) { toast('Cletus is dead. Tap Undo if that was a mistake.'); closeLayer(); return; }
+    c.hp = d.hpMax; c.temp = 0; c.agathys = 0; c.hdSpent = 0; c.slotsUsed = 0; c.deathS = 0; c.deathF = 0; c.conc = null; c.heroic = true; c.mageArmor = true; c.effects = []; c.turn = {};
+    c.conditions = c.conditions.filter(x => x !== 'unconscious');
     Object.keys(c.uses).forEach(k => { c.uses[k] = 0; });
     c.exhaustion = Math.max(0, c.exhaustion - 1);
     closeLayer(); commit(); toast('Long Rest done. Fully restored.');
@@ -1411,16 +1586,31 @@ const ACTIONS = {
   rollMode: el => { S.layer.mode = el.dataset.m; renderLayer(); },
   rollPick: el => { resetRoll(S.layer, el.dataset.k); renderLayer(); },
   rollBless: () => { const L = S.layer; L.bless = !L.bless; renderLayer(); },
-  toDamage: el => { const L = S.layer, k = DMG_FOR[L.k], crit = el.dataset.crit === '1'; resetRoll(L, k); L.opts = { hex: S.c.conc === 'hex', twoHand: true, slot: D().slotLvl, crit }; renderLayer(); const sh = $('#layer .sheet'); if (sh) sh.scrollTop = 0; },
+  toDamage: el => { const L = S.layer, k = DMG_FOR[L.k], crit = el.dataset.crit === '1'; resetRoll(L, k); L.opts = { hex: S.c.conc === 'hex', twoHand: true, slot: D().slotLvl, crit, hurt: true }; renderLayer(); const sh = $('#layer .sheet'); if (sh) sh.scrollTop = 0; },
   heroicReroll: () => { const L = S.layer; S.c.heroic = false; L.d1 = ''; L.d2 = ''; L.vals = {}; L.rerolled = true; commit(); },
   spellToggle: el => { const id = el.dataset.id; if (S.openSpells.has(id)) S.openSpells.delete(id); else S.openSpells.add(id); render(); },
   condToggle: () => { S.showConds = !S.showConds; render(); },
-  rollOpt: el => { const o = S.layer.opts; o[el.dataset.o] = !o[el.dataset.o]; renderLayer(); },
+  rollOpt: el => {
+    const L = S.layer, o = L.opts, k = el.dataset.o, c = S.c, d = D();
+    if (k === 'smite') {
+      if (!o.smite) {
+        if (c.slotsUsed >= d.slots) { toast('No Pact slot left for Eldritch Smite.'); return; }
+        if (c.turn && c.turn.smite) toast('Eldritch Smite is once per turn. Tap "New turn" when a new turn starts.');
+        c.slotsUsed += 1; L.smiteSpent = true; c.turn = Object.assign({}, c.turn, { smite: true }); o.smite = true;
+        commit(); toast('Eldritch Smite: 1 Pact slot spent.'); return;
+      }
+      if (L.smiteSpent) { c.slotsUsed = Math.max(0, c.slotsUsed - 1); L.smiteSpent = false; c.turn = Object.assign({}, c.turn, { smite: false }); }
+      o.smite = false; commit(); return;
+    }
+    if (k === 'life' && !o.life) { if (c.turn && c.turn.life) toast('Lifedrinker is once per turn.'); c.turn = Object.assign({}, c.turn, { life: true }); o.life = true; commit(); return; }
+    if (k === 'hurt') { o.hurt = o.hurt === false; L.vals = {}; renderLayer(); return; }
+    o[k] = !o[k]; renderLayer();
+  },
   deathApply: el => {
-    const r = +el.dataset.r, c = S.c;
-    if (r === 20) { c.hp = 1; c.deathS = 0; c.deathF = 0; toast('Cletus is back up with 1 HP!'); }
+    const r = +el.dataset.r, t = +el.dataset.t, c = S.c;
+    if (r === 20) { c.hp = 1; c.deathS = 0; c.deathF = 0; c.conditions = c.conditions.filter(x => x !== 'unconscious'); toast('Cletus is back up with 1 HP!'); }
     else if (r === 1) c.deathF = Math.min(3, c.deathF + 2);
-    else if (r >= 10) c.deathS = Math.min(3, c.deathS + 1);
+    else if (t >= 10) c.deathS = Math.min(3, c.deathS + 1);
     else c.deathF = Math.min(3, c.deathF + 1);
     if (c.deathS >= 3) toast('Three successes: Cletus is stable.');
     if (c.deathF >= 3) toast('Three failures: Cletus has died.');
@@ -1428,18 +1618,25 @@ const ACTIONS = {
   },
   selfHeal: el => { applyHeal(+el.dataset.v); closeLayer(); commit(); },
   lifeHeal: el => { const c = S.c; if (c.hdSpent >= c.level) { toast('No Hit Dice left.'); return; } c.hdSpent += 1; applyHeal(+el.dataset.v); closeLayer(); commit(); },
-  selfTemp: el => { const c = S.c, v = +el.dataset.v; if (v > c.temp) { c.temp = v; c.agathys = 0; } closeLayer(); commit(); },
+  selfTemp: el => { const c = S.c, v = +el.dataset.v; if (v > c.temp) { c.temp = v; c.agathys = 0; c.effects = c.effects.filter(e => e.sid !== 'armorAgathys'); closeLayer(); commit(); } else { closeLayer(); toast(`He keeps his ${c.temp} temp HP: they don't stack.`); } },
   cast: el => openLayer({ type: 'cast', id: el.dataset.id }),
   castDo: el => {
     const via = el.dataset.via, c = S.c, d = D(), id = S.layer.id, s = SP[id];
+    const target = (S.layer.target || '').trim();
     if (via === 'slot') { if (c.slotsUsed >= d.slots) return; c.slotsUsed += 1; }
     if (via === 'steps') c.uses.steps += 1;
     if (via === 'freeHW') c.uses.freeHW = 1;
     if (via === 'patron') c.uses.patron = 1;
+    if (via === 'feyT' || via === 'shadowT') c.uses[via] = 1;
     if (via.startsWith('arc')) c.uses[via] = 1;
+    const lv = via === 'slot' ? d.slotLvl : via.startsWith('arc') ? +via.slice(3) : Math.max(1, s.l);
     if (id === 'mageArmor') c.mageArmor = true;
-    if (s.c) c.conc = id;
-    if (id === 'armorAgathys') { const lv = via === 'slot' ? d.slotLvl : 1; const t = 5 * lv; if (t >= c.temp) { c.temp = t; c.agathys = t; } }
+    if (s.c) { endConcentration(); c.conc = id; }
+    if (id === 'armorAgathys') { const t = 5 * lv; c.agathys = t; if (t > c.temp) c.temp = t; }
+    const dur = durText(id, lv);
+    if (dur) { c.effects = c.effects.filter(e => e.sid !== id); c.effects.push({ sid: id, dur, target }); }
+    const slotKind = { Action: 'action', Bonus: 'bonus', Reaction: 'reaction' }[s.t];
+    if (slotKind) c.turn = Object.assign({}, c.turn, { [slotKind]: true });
     closeLayer(); commit();
     if (id === 'healingWord') openLayer({ type: 'roll', k: 'hwHeal', opts: { slot: via === 'slot' ? d.slotLvl : 1 } });
     else if (id === 'eldritchBlast') openLayer({ type: 'roll', k: 'sparkAtk' });
@@ -1461,20 +1658,40 @@ const ACTIONS = {
   noteTag: el => { S.noteTag = el.dataset.t; render(); },
   noteSave: async () => {
     const L = S.layer, f = L.form;
-    if (!S.notesCol) { L.err = 'Notes need the cloud connection. Try again in claude.ai.'; renderLayer(); return; }
-    L.busy = true; L.err = ''; renderLayer();
     const body = { title: f.title.trim(), tag: f.tag, body: f.body, updated: Date.now() };
+    const existing = L.id ? allNotes().find(n => n.id === L.id) : null;
+    const saveLocal = () => {
+      const pend = readPending();
+      const own = existing && existing.pending ? pend.find(p => p.id === existing.id) : null;
+      if (own) Object.assign(own, body);
+      else pend.push(Object.assign({ id: 'n' + Date.now().toString(36) + uid(), cloudId: existing ? existing.id : undefined, created: existing ? existing.created || Date.now() : Date.now() }, body));
+      writePending(pend);
+    };
+    if (!S.notesCol || (existing && existing.pending)) {
+      saveLocal(); closeLayer(); render();
+      toast(S.notesCol ? 'Note saved.' : 'Saved on this device. It syncs when the app is back online.');
+      syncPending(); return;
+    }
+    L.busy = true; L.err = ''; renderLayer();
     try {
-      if (L.id) { const old = S.notes.find(n => n.id === L.id); await S.notesCol.doc(L.id).set(Object.assign({ created: old && old.created || Date.now() }, body)); }
-      else await S.notesCol.add(Object.assign({ created: Date.now() }, body));
+      const id = existing ? existing.id : 'n' + Date.now().toString(36) + uid();
+      await S.notesCol.doc(id).set(Object.assign({ created: existing && existing.created || Date.now() }, body));
       closeLayer(); render(); toast('Note saved.');
     } catch (e) {
-      L.busy = false; L.err = e && e.code === 'quota_exceeded' ? 'Storage is full. Delete some old notes and try again.' : 'Couldn\'t save the note. Check your connection and try again.'; renderLayer();
+      if (e && e.code === 'quota_exceeded') { L.busy = false; L.err = 'Storage is full. Delete some old notes and try again.'; renderLayer(); return; }
+      saveLocal(); closeLayer(); render(); toast('Couldn\'t reach the cloud: saved on this device, it will sync later.');
     }
   },
   noteDel: async () => {
     const L = S.layer;
     if (!L.confirm) { L.confirm = true; renderLayer(); return; }
+    const n = allNotes().find(x => x.id === L.id);
+    if (n && n.pending) {
+      writePending(readPending().filter(p => p.id !== n.id));
+      if (n.cloudId && S.notesCol) { try { await S.notesCol.doc(n.cloudId).delete(); } catch (e) {} }
+      closeLayer(); render(); toast('Note deleted.'); return;
+    }
+    if (!S.notesCol) { L.err = 'Deleting a synced note needs the cloud. Try again when online.'; L.confirm = false; renderLayer(); return; }
     try { await S.notesCol.doc(L.id).delete(); closeLayer(); render(); toast('Note deleted.'); }
     catch (e) { L.err = 'Couldn\'t delete the note. Try again.'; L.confirm = false; renderLayer(); }
   },
@@ -1526,14 +1743,17 @@ document.addEventListener('change', ev => {
   if (el.id === 'rollKind') { resetRoll(S.layer, el.value); renderLayer(); return; }
   if (el.id === 'hwSlot') { S.layer.opts.slot = +el.value; renderLayer(); return; }
   if (el.dataset.coin) { const v = Math.max(0, parseInt(el.value, 10) || 0); S.c.coins[el.dataset.coin] = v; commit(); return; }
-  if (el.id === 'importFile') { importFile(el.files && el.files[0]); return; }
-  if (el.dataset.wk && S.layer && S.layer.type === 'level') { S.layer.w[el.dataset.wk] = el.value; if (el.dataset.wk === 'invOut') { S.layer.w.invIn = ''; S.layer.w.invInChoice = ''; } if (el.dataset.wk === 'invIn') S.layer.w.invInChoice = ''; if (el.dataset.wk === 'canOut') S.layer.w.canIn = ''; if (el.dataset.wk === 'spOut') S.layer.w.spIn = ''; if (el.dataset.wk === 'feat') { S.layer.w.featAb = ''; S.layer.w.featSkill = ''; S.layer.w.featExp = ''; } renderLayer(); return; }
+  if (el.id === 'importFile') { importFile(el.files && el.files[0]); el.value = ''; return; }
+  if (el.id === 'coinType') { S.coinType = el.value; return; }
+  if (el.dataset.wk && S.layer && S.layer.type === 'level' && el.tagName === 'INPUT') { S.layer.w[el.dataset.wk] = el.value; return; }
+  if (el.dataset.wk && S.layer && S.layer.type === 'level') { S.layer.w[el.dataset.wk] = el.value; if (el.dataset.wk === 'invOut') { S.layer.w.invIn = ''; S.layer.w.invInChoice = ''; } if (el.dataset.wk === 'invIn') S.layer.w.invInChoice = ''; if (el.dataset.wk === 'canOut') S.layer.w.canIn = ''; if (el.dataset.wk === 'spOut') S.layer.w.spIn = ''; if (el.dataset.wk === 'arcOut') S.layer.w.arcIn = ''; if (el.dataset.wk === 'feat') { S.layer.w.featAb = ''; S.layer.w.featSkill = ''; S.layer.w.featExp = ''; } renderLayer(); return; }
   if (el.dataset.wchoice && S.layer && S.layer.type === 'level') { const k = el.dataset.wchoice; if (k === '__in') S.layer.w.invInChoice = el.value; else S.layer.w.invChoice[k] = el.value; renderLayer(); return; }
-  if (el.dataset.f && S.layer && S.layer.form) { S.layer.form[el.dataset.f] = el.value; renderLayer(); }
+  if (el.dataset.f && S.layer && S.layer.form) { S.layer.form[el.dataset.f] = el.value; } // no redraw: it would swallow the tap on Save
 });
 document.addEventListener('input', ev => {
   const el = ev.target, L = S.layer;
   if (el.id === 'noteSearch') { S.noteQuery = el.value; render(); return; }
+  if (el.id === 'coinAmt') { S.coinAmt = el.value; return; }
   if (!L) return;
   if (L.type === 'roll') {
     if (el.id === 'd1') L.d1 = el.value; else if (el.id === 'd2') L.d2 = el.value; else if (el.id === 'concDmg') L.concDmg = el.value; else if (el.id === 'blessV') L.blessV = el.value; else if (el.id === 'bonusV') L.bonusV = el.value;
@@ -1541,6 +1761,7 @@ document.addEventListener('input', ev => {
     renderLayer(); return;
   }
   if (L.type === 'hp' && el.id === 'hpAmt') { L.v = el.value; return; }
+  if (L.type === 'cast' && el.id === 'castTarget') { L.target = el.value; return; }
   if (L.type === 'short' && el.id === 'srRoll') { L.roll = el.value; renderLayer(); return; }
   if (L.type === 'level' && el.dataset.wk) { L.w[el.dataset.wk] = el.value; renderLayer(); return; }
   if (el.dataset.f && L.form) { L.form[el.dataset.f] = el.value; const btn = $('#layer [data-act="itemSave"], #layer [data-act="noteSave"]'); if (btn) btn.disabled = L.type === 'item' ? !L.form.name.trim() : !(L.form.title.trim() || L.form.body.trim()); }
@@ -1556,13 +1777,14 @@ function importFile(file) {
   r.onload = () => {
     try {
       const data = JSON.parse(r.result);
-      if (!data || typeof data !== 'object' || !data.abilities || !data.level) throw new Error('bad');
-      S.c = upgrade(data); S.conn = S.docRef ? 'cloud' : 'local';
-      commit(); toast(`Restored Cletus at level ${S.c.level}.`);
+      if (!data || typeof data !== 'object' || !data.abilities || !data.level || !Array.isArray(data.invocations)) throw new Error('bad');
+      if (!S.c) { S.c = upgrade(clone(data)); fixHp(); S.conn = S.docRef ? 'cloud' : 'local'; commit(); toast(`Restored Cletus at level ${S.c.level}.`); return; }
+      openLayer({ type: 'importConfirm', data });
     } catch (e) { openLayer({ type: 'msg', title: 'Couldn\'t restore', text: 'That file isn\'t a Cletus backup. Pick a .json file saved from this app.' }); }
   };
   r.readAsText(file);
 }
+window.addEventListener('online', () => { if (S.dirty) flush(); syncPending(); });
 window.addEventListener('pagehide', () => { if (S.dirty) flush(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.dirty) flush(); });
 
